@@ -1,13 +1,11 @@
 loadstring(game:HttpGet("https://raw.githubusercontent.com/CriShoux/OwlHub/master/OwlHub.txt"))();
 
---[[
 
-Game: BIG Paintball! 🔫
 
-Credits: OwlHub
-Script Poster: OwlHub
-Compatibility: All Executors
-Tested by: Hydrogen
-Tested on: — 06/17/2023 1:52 PM
+--Game: BIG Paintball! 🔫
 
---]]
+--Credits: OwlHub
+--Script Poster: OwlHub
+--Compatibility: All Executors
+--Tested by: Hydrogen
+--Tested on: — 06/17/2023 1:52 PM
