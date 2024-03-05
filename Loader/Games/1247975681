@@ -1,5 +1,5 @@
-loadstring(game:HttpGet("https://raw.githubusercontent.com/CriShoux/OwlHub/master/OwlHub.txt"))();
 SCRIPT_LOAD = "https://raw.githubusercontent.com/CriShoux/OwlHub/master/OwlHub.txt"
+loadstring(game:HttpGet("https://raw.githubusercontent.com/stuffman0001/CanHub-V2/main/Loader/Check%20Script%20Status"))();
 
 --Game: BIG Paintball! 🔫
 
