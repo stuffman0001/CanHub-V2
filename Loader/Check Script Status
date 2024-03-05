@@ -1,5 +1,5 @@
 if STATUS == "03" then
-SUPPORTED == true
+SUPPORTED = true
 else
 loadstring(game:HttpGet(SCRIPT_LOAD))();
 end
