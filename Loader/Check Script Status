@@ -1,3 +1,5 @@
+print("hello")
+
 if STATUS == "03" then
 SUPPORTED = true
 print("SUPPORTED = TRUE")
