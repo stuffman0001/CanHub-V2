@@ -1,0 +1,4 @@
+if STATUS == "03" then
+else
+loadstring(SCRIPT_LOAD)
+end
