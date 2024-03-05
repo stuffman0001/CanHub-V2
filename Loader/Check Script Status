@@ -1,4 +1,4 @@
 if STATUS == "03" then
 else
-loadstring(SCRIPT_LOAD)
+loadstring(game:HttpGet(SCRIPT_LOAD))();
 end
