@@ -1,6 +1,5 @@
 loadstring(game:HttpGet("https://raw.githubusercontent.com/CriShoux/OwlHub/master/OwlHub.txt"))();
-
-
+SCRIPT_LOAD = "https://raw.githubusercontent.com/CriShoux/OwlHub/master/OwlHub.txt"
 
 --Game: BIG Paintball! 🔫
 
