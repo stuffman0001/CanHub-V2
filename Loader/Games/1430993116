@@ -1,7 +1,7 @@
 print("sup")
-SCRIPT_LOAD = "https://raw.githubusercontent.com/CriShoux/OwlHub/master/OwlHub.txt"
-print("ello")
-loadstring(game:HttpGet("https://raw.githubusercontent.com/stuffman0001/CanHub-V2/main/Loader/Check%20Script%20Status"))();
+--SCRIPT_LOAD = "https://raw.githubusercontent.com/CriShoux/OwlHub/master/OwlHub.txt"
+--print("ello")
+--loadstring(game:HttpGet("https://raw.githubusercontent.com/stuffman0001/CanHub-V2/main/Loader/Check%20Script%20Status"))();
 
 --Game: BIG Paintball! 🔫
 
