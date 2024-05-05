@@ -1,3 +1,4 @@
+wait(0.5)
 local passes, fails, undefined = 0, 0, 0
 local running = 0
 
@@ -14,23 +15,20 @@ local function getGlobal(path)
 end
 
 local function test(name, aliases, callback)
+
 	running += 1
 
 	task.spawn(function()
 		if not callback then
-
 		elseif not getGlobal(name) then
 			fails += 1
-
 		else
 			local success, message = pcall(callback)
 	
 			if success then
 				passes += 1
-
 			else
 				fails += 1
-
 			end
 		end
 	
@@ -54,25 +52,6 @@ end
 -- Header and summary
 
 
-task.defer(function()
-	repeat task.wait() until running == 0
-
-	local rate = math.round(passes / (passes + fails) * 100)
-	local outOf = passes .. " out of " .. (passes + fails)
-
-	--print("\n")
-
-game.StarterGui:SetCore("SendNotification", {
-				Title = "⚠ UNC Summary";
-				Text = "✅ Tested with a " .. rate .. "% success rate (" .. outOf .. ")";
-				Duration = 5;
-			})
-
-	--print("UNC Summary")
-	--print("✅ Tested with a " .. rate .. "% success rate (" .. outOf .. ")")
---	print("⛔ " .. fails .. " tests failed")
---	print("⚠️ " .. undefined .. " globals are missing aliases")
-end)
 
 -- Cache
 
@@ -871,3 +850,13 @@ test("WebSocket.connect", {}, function()
 	end
 	ws:Close()
 end)
+  
+local rate = math.round(passes / (passes + fails) * 100)
+local outOf = passes .. " out of " .. (passes + fails)
+
+
+ game.StarterGui:SetCore("SendNotification", {
+	Title = "UNC Summary";
+	Text = "✅ Tested with a " .. tostring(rate) .. "% success rate (" .. tostring(outOf) .. ")";
+	Duration = 5;
+	})
