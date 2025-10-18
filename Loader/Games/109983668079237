@@ -1,0 +1,775 @@
+--[[
+	WARNING: Heads up! This script has not been verified by ScriptBlox. Use at your own risk!
+]]
+local TweenService = game:GetService("TweenService")
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local Mouse = LocalPlayer:GetMouse()
+
+local InstantStealEnabled = false
+local SelectedBase = "Base1"
+local NoclipEnabled = false
+local FlyEnabled = false
+local FlySpeed = 50
+local SpeedBoostEnabled = false
+local SpeedBoostAmount = 75
+local InfJumpEnabled = false
+local InfJumpConnection = nil
+
+local ScreenGui = Instance.new("ScreenGui")
+local LoadingFrame = Instance.new("Frame")
+local MainFrame = Instance.new("Frame")
+local TopBar = Instance.new("Frame")
+local TitleLabel = Instance.new("TextLabel")
+local CloseButton = Instance.new("TextButton")
+local TabContainer = Instance.new("Frame")
+local ContentFrame = Instance.new("Frame")
+
+ScreenGui.Name = "ThirstGUI"
+ScreenGui.Parent = game.CoreGui
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+ScreenGui.ResetOnSpawn = false
+
+LoadingFrame.Name = "LoadingFrame"
+LoadingFrame.Parent = ScreenGui
+LoadingFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+LoadingFrame.BorderSizePixel = 0
+LoadingFrame.Position = UDim2.new(0.5, -175, 0.5, -125)
+LoadingFrame.Size = UDim2.new(0, 350, 0, 250)
+LoadingFrame.ClipsDescendants = true
+
+local LoadingCorner = Instance.new("UICorner")
+LoadingCorner.CornerRadius = UDim.new(0, 15)
+LoadingCorner.Parent = LoadingFrame
+
+local LoadingStroke = Instance.new("UIStroke")
+LoadingStroke.Color = Color3.fromRGB(255, 255, 255)
+LoadingStroke.Thickness = 2
+LoadingStroke.Transparency = 0.7
+LoadingStroke.Parent = LoadingFrame
+
+local LoadingGradient = Instance.new("UIGradient")
+LoadingGradient.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(20, 20, 20)),
+    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(10, 10, 10)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(20, 20, 20))
+}
+LoadingGradient.Rotation = 45
+LoadingGradient.Parent = LoadingFrame
+
+local SamuraiIcon = Instance.new("ImageLabel")
+SamuraiIcon.Parent = LoadingFrame
+SamuraiIcon.BackgroundTransparency = 1
+SamuraiIcon.Position = UDim2.new(0.5, -40, 0.15, 0)
+SamuraiIcon.Size = UDim2.new(0, 80, 0, 80)
+SamuraiIcon.Image = "rbxassetid://7733955511"
+SamuraiIcon.ImageColor3 = Color3.fromRGB(255, 255, 255)
+
+local LoadingTitle = Instance.new("TextLabel")
+LoadingTitle.Parent = LoadingFrame
+LoadingTitle.BackgroundTransparency = 1
+LoadingTitle.Position = UDim2.new(0, 0, 0.5, 0)
+LoadingTitle.Size = UDim2.new(1, 0, 0.15, 0)
+LoadingTitle.Font = Enum.Font.GothamBold
+LoadingTitle.Text = "Thanks for using"
+LoadingTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+LoadingTitle.TextSize = 20
+LoadingTitle.TextStrokeTransparency = 0.5
+
+local LoadingSubtitle = Instance.new("TextLabel")
+LoadingSubtitle.Parent = LoadingFrame
+LoadingSubtitle.BackgroundTransparency = 1
+LoadingSubtitle.Position = UDim2.new(0, 0, 0.65, 0)
+LoadingSubtitle.Size = UDim2.new(1, 0, 0.1, 0)
+LoadingSubtitle.Font = Enum.Font.Gotham
+LoadingSubtitle.Text = "Join Our Discord For More!"
+LoadingSubtitle.TextColor3 = Color3.fromRGB(200, 200, 200)
+LoadingSubtitle.TextSize = 14
+
+local CreditsLabel = Instance.new("TextLabel")
+CreditsLabel.Parent = LoadingFrame
+CreditsLabel.BackgroundTransparency = 1
+CreditsLabel.Position = UDim2.new(0, 0, 0.75, 0)
+CreditsLabel.Size = UDim2.new(1, 0, 0.1, 0)
+CreditsLabel.Font = Enum.Font.GothamBold
+CreditsLabel.Text = ""
+CreditsLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
+CreditsLabel.TextSize = 11
+
+local LoadButton = Instance.new("TextButton")
+LoadButton.Parent = LoadingFrame
+LoadButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+LoadButton.BorderSizePixel = 0
+LoadButton.Position = UDim2.new(0.25, 0, 0.88, -20)
+LoadButton.Size = UDim2.new(0.5, 0, 0, 35)
+LoadButton.Font = Enum.Font.GothamBold
+LoadButton.Text = "LOAD"
+LoadButton.TextColor3 = Color3.fromRGB(0, 0, 0)
+LoadButton.TextSize = 16
+
+local LoadButtonCorner = Instance.new("UICorner")
+LoadButtonCorner.CornerRadius = UDim.new(0, 8)
+LoadButtonCorner.Parent = LoadButton
+
+MainFrame.Name = "MainFrame"
+MainFrame.Parent = ScreenGui
+MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+MainFrame.BorderSizePixel = 0
+MainFrame.Position = UDim2.new(0.5, -300, 0.5, -225)
+MainFrame.Size = UDim2.new(0, 600, 0, 450)
+MainFrame.Visible = false
+MainFrame.ClipsDescendants = true
+
+local MainCorner = Instance.new("UICorner")
+MainCorner.CornerRadius = UDim.new(0, 12)
+MainCorner.Parent = MainFrame
+
+local MainStroke = Instance.new("UIStroke")
+MainStroke.Color = Color3.fromRGB(255, 255, 255)
+MainStroke.Thickness = 2
+MainStroke.Transparency = 0.8
+MainStroke.Parent = MainFrame
+
+local MainGradient = Instance.new("UIGradient")
+MainGradient.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(25, 25, 25)),
+    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(15, 15, 15)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(25, 25, 25))
+}
+MainGradient.Rotation = 90
+MainGradient.Parent = MainFrame
+
+TopBar.Name = "TopBar"
+TopBar.Parent = MainFrame
+TopBar.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+TopBar.BorderSizePixel = 0
+TopBar.Size = UDim2.new(1, 0, 0, 50)
+
+local TopBarCorner = Instance.new("UICorner")
+TopBarCorner.CornerRadius = UDim.new(0, 12)
+TopBarCorner.Parent = TopBar
+
+local TopBarGradient = Instance.new("UIGradient")
+TopBarGradient.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(30, 30, 30)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(20, 20, 20))
+}
+TopBarGradient.Rotation = 90
+TopBarGradient.Parent = TopBar
+
+TitleLabel.Parent = TopBar
+TitleLabel.BackgroundTransparency = 1
+TitleLabel.Position = UDim2.new(0, 15, 0, 0)
+TitleLabel.Size = UDim2.new(0.7, 0, 1, 0)
+TitleLabel.Font = Enum.Font.GothamBold
+TitleLabel.Text = "Steal A Clash Royale --Thirst"
+TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+TitleLabel.TextSize = 18
+TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+CloseButton.Parent = TopBar
+CloseButton.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
+CloseButton.BorderSizePixel = 0
+CloseButton.Position = UDim2.new(1, -45, 0.5, -15)
+CloseButton.Size = UDim2.new(0, 30, 0, 30)
+CloseButton.Font = Enum.Font.GothamBold
+CloseButton.Text = "X"
+CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseButton.TextSize = 16
+
+local CloseCorner = Instance.new("UICorner")
+CloseCorner.CornerRadius = UDim.new(0, 8)
+CloseCorner.Parent = CloseButton
+
+TabContainer.Name = "TabContainer"
+TabContainer.Parent = MainFrame
+TabContainer.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+TabContainer.BorderSizePixel = 0
+TabContainer.Position = UDim2.new(0, 0, 0, 50)
+TabContainer.Size = UDim2.new(0, 150, 1, -50)
+
+local TabGradient = Instance.new("UIGradient")
+TabGradient.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(25, 25, 25)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(20, 20, 20))
+}
+TabGradient.Parent = TabContainer
+
+ContentFrame.Name = "ContentFrame"
+ContentFrame.Parent = MainFrame
+ContentFrame.BackgroundTransparency = 1
+ContentFrame.Position = UDim2.new(0, 160, 0, 60)
+ContentFrame.Size = UDim2.new(1, -170, 1, -70)
+
+local dragging, dragInput, dragStart, startPos
+TopBar.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = MainFrame.Position
+        
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+TopBar.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement then
+        dragInput = input
+    end
+end)
+
+game:GetService("UserInputService").InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        local delta = input.Position - dragStart
+        local targetPos = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        
+        TweenService:Create(MainFrame, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = targetPos}):Play()
+    end
+end)
+
+local function CreateTab(name)
+    local TabButton = Instance.new("TextButton")
+    TabButton.Name = name .. "Tab"
+    TabButton.Parent = TabContainer
+    TabButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    TabButton.BorderSizePixel = 0
+    TabButton.Size = UDim2.new(1, -10, 0, 40)
+    TabButton.Font = Enum.Font.GothamBold
+    TabButton.Text = "  " .. name
+    TabButton.TextColor3 = Color3.fromRGB(180, 180, 180)
+    TabButton.TextSize = 14
+    TabButton.TextXAlignment = Enum.TextXAlignment.Left
+    
+    local TabCorner = Instance.new("UICorner")
+    TabCorner.CornerRadius = UDim.new(0, 8)
+    TabCorner.Parent = TabButton
+    
+    return TabButton
+end
+
+local function CreateButton(parent, text, callback)
+    local Button = Instance.new("TextButton")
+    Button.Parent = parent
+    Button.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    Button.BorderSizePixel = 0
+    Button.Size = UDim2.new(1, -20, 0, 45)
+    Button.Font = Enum.Font.GothamBold
+    Button.Text = text
+    Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Button.TextSize = 14
+    
+    local ButtonCorner = Instance.new("UICorner")
+    ButtonCorner.CornerRadius = UDim.new(0, 8)
+    ButtonCorner.Parent = Button
+    
+    local ButtonStroke = Instance.new("UIStroke")
+    ButtonStroke.Color = Color3.fromRGB(255, 255, 255)
+    ButtonStroke.Thickness = 1
+    ButtonStroke.Transparency = 0.9
+    ButtonStroke.Parent = Button
+    
+    Button.MouseEnter:Connect(function()
+        TweenService:Create(Button, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(50, 50, 50)}):Play()
+        TweenService:Create(ButtonStroke, TweenInfo.new(0.2), {Transparency = 0.7}):Play()
+    end)
+    
+    Button.MouseLeave:Connect(function()
+        TweenService:Create(Button, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(30, 30, 30)}):Play()
+        TweenService:Create(ButtonStroke, TweenInfo.new(0.2), {Transparency = 0.9}):Play()
+    end)
+    
+    Button.MouseButton1Click:Connect(callback)
+    
+    return Button
+end
+
+local function CreateToggle(parent, text, callback)
+    local ToggleFrame = Instance.new("Frame")
+    ToggleFrame.Parent = parent
+    ToggleFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    ToggleFrame.BorderSizePixel = 0
+    ToggleFrame.Size = UDim2.new(1, -20, 0, 45)
+    
+    local ToggleCorner = Instance.new("UICorner")
+    ToggleCorner.CornerRadius = UDim.new(0, 8)
+    ToggleCorner.Parent = ToggleFrame
+    
+    local ToggleLabel = Instance.new("TextLabel")
+    ToggleLabel.Parent = ToggleFrame
+    ToggleLabel.BackgroundTransparency = 1
+    ToggleLabel.Position = UDim2.new(0, 15, 0, 0)
+    ToggleLabel.Size = UDim2.new(0.7, 0, 1, 0)
+    ToggleLabel.Font = Enum.Font.GothamBold
+    ToggleLabel.Text = text
+    ToggleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    ToggleLabel.TextSize = 14
+    ToggleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    
+    local ToggleButton = Instance.new("TextButton")
+    ToggleButton.Parent = ToggleFrame
+    ToggleButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    ToggleButton.BorderSizePixel = 0
+    ToggleButton.Position = UDim2.new(1, -55, 0.5, -12)
+    ToggleButton.Size = UDim2.new(0, 45, 0, 24)
+    ToggleButton.Text = ""
+    
+    local ToggleButtonCorner = Instance.new("UICorner")
+    ToggleButtonCorner.CornerRadius = UDim.new(1, 0)
+    ToggleButtonCorner.Parent = ToggleButton
+    
+    local ToggleIndicator = Instance.new("Frame")
+    ToggleIndicator.Parent = ToggleButton
+    ToggleIndicator.BackgroundColor3 = Color3.fromRGB(150, 150, 150)
+    ToggleIndicator.BorderSizePixel = 0
+    ToggleIndicator.Position = UDim2.new(0, 3, 0.5, -9)
+    ToggleIndicator.Size = UDim2.new(0, 18, 0, 18)
+    
+    local IndicatorCorner = Instance.new("UICorner")
+    IndicatorCorner.CornerRadius = UDim.new(1, 0)
+    IndicatorCorner.Parent = ToggleIndicator
+    
+    local toggled = false
+    
+    ToggleButton.MouseButton1Click:Connect(function()
+        toggled = not toggled
+        
+        if toggled then
+            TweenService:Create(ToggleButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(255, 255, 255)}):Play()
+            TweenService:Create(ToggleIndicator, TweenInfo.new(0.2), {
+                Position = UDim2.new(1, -21, 0.5, -9),
+                BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+            }):Play()
+        else
+            TweenService:Create(ToggleButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(50, 50, 50)}):Play()
+            TweenService:Create(ToggleIndicator, TweenInfo.new(0.2), {
+                Position = UDim2.new(0, 3, 0.5, -9),
+                BackgroundColor3 = Color3.fromRGB(150, 150, 150)
+            }):Play()
+        end
+        
+        callback(toggled)
+    end)
+    
+    return ToggleFrame
+end
+
+local function CreateKeybind(parent, text, callback)
+    local KeybindFrame = Instance.new("Frame")
+    KeybindFrame.Parent = parent
+    KeybindFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    KeybindFrame.BorderSizePixel = 0
+    KeybindFrame.Size = UDim2.new(1, -20, 0, 45)
+    
+    local KeybindCorner = Instance.new("UICorner")
+    KeybindCorner.CornerRadius = UDim.new(0, 8)
+    KeybindCorner.Parent = KeybindFrame
+    
+    local KeybindLabel = Instance.new("TextLabel")
+    KeybindLabel.Parent = KeybindFrame
+    KeybindLabel.BackgroundTransparency = 1
+    KeybindLabel.Position = UDim2.new(0, 15, 0, 0)
+    KeybindLabel.Size = UDim2.new(0.6, 0, 1, 0)
+    KeybindLabel.Font = Enum.Font.GothamBold
+    KeybindLabel.Text = text
+    KeybindLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    KeybindLabel.TextSize = 14
+    KeybindLabel.TextXAlignment = Enum.TextXAlignment.Left
+    
+    local KeybindButton = Instance.new("TextButton")
+    KeybindButton.Parent = KeybindFrame
+    KeybindButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    KeybindButton.BorderSizePixel = 0
+    KeybindButton.Position = UDim2.new(1, -80, 0.5, -15)
+    KeybindButton.Size = UDim2.new(0, 70, 0, 30)
+    KeybindButton.Font = Enum.Font.GothamBold
+    KeybindButton.Text = "None"
+    KeybindButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    KeybindButton.TextSize = 12
+    
+    local KeybindButtonCorner = Instance.new("UICorner")
+    KeybindButtonCorner.CornerRadius = UDim.new(0, 6)
+    KeybindButtonCorner.Parent = KeybindButton
+    
+    local currentKey = nil
+    local waiting = false
+    
+    KeybindButton.MouseButton1Click:Connect(function()
+        if waiting then return end
+        waiting = true
+        KeybindButton.Text = "..."
+        
+        local connection
+        connection = game:GetService("UserInputService").InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.Keyboard then
+                currentKey = input.KeyCode
+                KeybindButton.Text = input.KeyCode.Name
+                waiting = false
+                connection:Disconnect()
+            end
+        end)
+    end)
+    
+    game:GetService("UserInputService").InputBegan:Connect(function(input)
+        if input.KeyCode == currentKey and not waiting then
+            callback()
+        end
+    end)
+    
+    return KeybindFrame
+end
+
+local HelperPage = Instance.new("ScrollingFrame")
+HelperPage.Name = "HelperPage"
+HelperPage.Parent = ContentFrame
+HelperPage.BackgroundTransparency = 1
+HelperPage.Size = UDim2.new(1, 0, 1, 0)
+HelperPage.ScrollBarThickness = 4
+HelperPage.Visible = true
+
+local HelperLayout = Instance.new("UIListLayout")
+HelperLayout.Parent = HelperPage
+HelperLayout.SortOrder = Enum.SortOrder.LayoutOrder
+HelperLayout.Padding = UDim.new(0, 10)
+
+local MainPage = Instance.new("ScrollingFrame")
+MainPage.Name = "MainPage"
+MainPage.Parent = ContentFrame
+MainPage.BackgroundTransparency = 1
+MainPage.Size = UDim2.new(1, 0, 1, 0)
+MainPage.ScrollBarThickness = 4
+MainPage.Visible = false
+
+local MainLayout = Instance.new("UIListLayout")
+MainLayout.Parent = MainPage
+MainLayout.SortOrder = Enum.SortOrder.LayoutOrder
+MainLayout.Padding = UDim.new(0, 10)
+
+local DiscordPage = Instance.new("ScrollingFrame")
+DiscordPage.Name = "DiscordPage"
+DiscordPage.Parent = ContentFrame
+DiscordPage.BackgroundTransparency = 1
+DiscordPage.Size = UDim2.new(1, 0, 1, 0)
+DiscordPage.ScrollBarThickness = 4
+DiscordPage.Visible = false
+
+local DiscordLayout = Instance.new("UIListLayout")
+DiscordLayout.Parent = DiscordPage
+DiscordLayout.SortOrder = Enum.SortOrder.LayoutOrder
+DiscordLayout.Padding = UDim.new(0, 10)
+
+local HelperTabBtn = CreateTab("Instant Steal")
+HelperTabBtn.Position = UDim2.new(0, 5, 0, 10)
+
+local MainTabBtn = CreateTab("Main")
+MainTabBtn.Position = UDim2.new(0, 5, 0, 60)
+
+local DiscordTabBtn = CreateTab("Discord")
+DiscordTabBtn.Position = UDim2.new(0, 5, 0, 110)
+
+local function SwitchTab(tab)
+    HelperPage.Visible = false
+    MainPage.Visible = false
+    DiscordPage.Visible = false
+    
+    HelperTabBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    MainTabBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    DiscordTabBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    
+    HelperTabBtn.TextColor3 = Color3.fromRGB(180, 180, 180)
+    MainTabBtn.TextColor3 = Color3.fromRGB(180, 180, 180)
+    DiscordTabBtn.TextColor3 = Color3.fromRGB(180, 180, 180)
+    
+    if tab == "Helper" then
+        HelperPage.Visible = true
+        HelperTabBtn.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+        HelperTabBtn.TextColor3 = Color3.fromRGB(0, 0, 0)
+    elseif tab == "Main" then
+        MainPage.Visible = true
+        MainTabBtn.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+        MainTabBtn.TextColor3 = Color3.fromRGB(0, 0, 0)
+    elseif tab == "Discord" then
+        DiscordPage.Visible = true
+        DiscordTabBtn.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+        DiscordTabBtn.TextColor3 = Color3.fromRGB(0, 0, 0)
+    end
+end
+
+HelperTabBtn.MouseButton1Click:Connect(function() SwitchTab("Helper") end)
+MainTabBtn.MouseButton1Click:Connect(function() SwitchTab("Main") end)
+DiscordTabBtn.MouseButton1Click:Connect(function() SwitchTab("Discord") end)
+
+local function findPlayerBase()
+    local configuration = LocalPlayer:FindFirstChild("Configuration")
+    if configuration then
+        local base = configuration:FindFirstChild("Base")
+        if base and base:IsA("ObjectValue") then
+            local baseValue = base.Value
+            if baseValue then
+                return baseValue.Name
+            end
+        end
+    end
+    return nil
+end
+
+local function findCollectZone(baseModel)
+    if baseModel then
+        local collectZone = baseModel:FindFirstChild("CollectZone")
+        if collectZone then return collectZone end
+        
+        for _, child in pairs(baseModel:GetDescendants()) do
+            if child.Name == "CollectZone" then
+                return child
+            end
+        end
+    end
+    return nil
+end
+
+local function TeleportToCollectZone()
+    if not InstantStealEnabled then return end
+    
+    local basesFolder = workspace:FindFirstChild("Bases")
+    if basesFolder then
+        local targetBase = basesFolder:FindFirstChild(SelectedBase)
+        if targetBase then
+            local collectZone = findCollectZone(targetBase)
+            if collectZone then
+                local character = LocalPlayer.Character
+                if character and character:FindFirstChild("HumanoidRootPart") then
+                    character.HumanoidRootPart.CFrame = collectZone.CFrame + Vector3.new(0, 5, 0)
+                end
+            end
+        end
+    end
+end
+
+spawn(function()
+    while true do
+        local character = LocalPlayer.Character
+        if character and NoclipEnabled then
+            for _, part in pairs(character:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    part.CanCollide = false
+                end
+            end
+        end
+        wait(0.1)
+    end
+end)
+
+local function ApplySpeedBoost()
+    local character = LocalPlayer.Character
+    if character and character:FindFirstChild("Humanoid") then
+        if SpeedBoostEnabled then
+            character.Humanoid.WalkSpeed = SpeedBoostAmount
+        else
+            character.Humanoid.WalkSpeed = 16
+        end
+    end
+end
+
+local function setInfJumpState(enabled)
+    InfJumpEnabled = enabled
+    
+    if enabled then
+        local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+        local UIS = game:GetService("UserInputService")
+        
+        if InfJumpConnection then
+            InfJumpConnection:Disconnect()
+        end
+        
+        InfJumpConnection = UIS.JumpRequest:Connect(function()
+            if Character and Character:FindFirstChild("Humanoid") then
+                Character.Humanoid:ChangeState("Jumping")
+            end
+        end)
+    else
+        if InfJumpConnection then
+            InfJumpConnection:Disconnect()
+            InfJumpConnection = nil
+        end
+    end
+end
+
+local flying = false
+local flyConnection
+local bg, bv
+
+local function startFly()
+    local character = LocalPlayer.Character
+    if not character then return end
+    
+    local humanoid = character:FindFirstChildOfClass("Humanoid")
+    local rootPart = character:FindFirstChild("HumanoidRootPart")
+    
+    if not humanoid or not rootPart then return end
+    
+    flying = true
+    
+    bg = Instance.new("BodyGyro", rootPart)
+    bg.P = 9e4
+    bg.maxTorque = Vector3.new(9e9, 9e9, 9e9)
+    bg.cframe = rootPart.CFrame
+    
+    bv = Instance.new("BodyVelocity", rootPart)
+    bv.velocity = Vector3.new(0, 0, 0)
+    bv.maxForce = Vector3.new(9e9, 9e9, 9e9)
+    
+    flyConnection = game:GetService("RunService").Heartbeat:Connect(function()
+        if not flying or not character or not rootPart then
+            if bg then bg:Destroy() end
+            if bv then bv:Destroy() end
+            if flyConnection then flyConnection:Disconnect() end
+            return
+        end
+        
+        local cam = workspace.CurrentCamera
+        local moveDir = Vector3.new(0, 0, 0)
+        
+        local keys = game:GetService("UserInputService"):GetKeysPressed()
+        for _, key in pairs(keys) do
+            if key.KeyCode == Enum.KeyCode.W then
+                moveDir = moveDir + cam.CFrame.LookVector
+            elseif key.KeyCode == Enum.KeyCode.S then
+                moveDir = moveDir - cam.CFrame.LookVector
+            elseif key.KeyCode == Enum.KeyCode.A then
+                moveDir = moveDir - cam.CFrame.RightVector
+            elseif key.KeyCode == Enum.KeyCode.D then
+                moveDir = moveDir + cam.CFrame.RightVector
+            elseif key.KeyCode == Enum.KeyCode.Space then
+                moveDir = moveDir + Vector3.new(0, 1, 0)
+            elseif key.KeyCode == Enum.KeyCode.LeftShift then
+                moveDir = moveDir - Vector3.new(0, 1, 0)
+            end
+        end
+        
+        if moveDir.Magnitude > 0 then
+            moveDir = moveDir.Unit
+        end
+        
+        bv.velocity = moveDir * FlySpeed
+        bg.cframe = cam.CFrame
+    end)
+end
+
+local function stopFly()
+    flying = false
+    if bg then bg:Destroy() bg = nil end
+    if bv then bv:Destroy() bv = nil end
+    if flyConnection then flyConnection:Disconnect() flyConnection = nil end
+end
+
+LocalPlayer.CharacterAdded:Connect(function(character)
+    wait(1)
+    ApplySpeedBoost()
+end)
+
+CreateToggle(HelperPage, "Instant Steal", function(state)
+    InstantStealEnabled = state
+end)
+
+CreateKeybind(HelperPage, "Instant Steal Keybind", function()
+    if InstantStealEnabled then
+        TeleportToCollectZone()
+    end
+end)
+
+CreateToggle(HelperPage, "Noclip", function(state)
+    NoclipEnabled = state
+end)
+
+CreateToggle(HelperPage, "Speed Boost", function(state)
+    SpeedBoostEnabled = state
+    ApplySpeedBoost()
+end)
+
+CreateToggle(HelperPage, "Fly", function(state)
+    FlyEnabled = state
+    if state then
+        startFly()
+    else
+        stopFly()
+    end
+end)
+
+CreateToggle(HelperPage, "Infinite Jump", function(state)
+    setInfJumpState(state)
+end)
+
+CreateButton(MainPage, "Infinite Money", function()
+    local args = {"Money", 1000000000000000000}
+    game:GetService("ReplicatedStorage"):WaitForChild("ClaimReward"):FireServer(unpack(args))
+end)
+
+CreateButton(MainPage, "Infinite Server Luck", function()
+    local ReplicatedStorage = game:GetService("ReplicatedStorage")
+    local LuckPurchaseEvent = ReplicatedStorage.LuckPurchaseEvent
+    LuckPurchaseEvent:FireServer(1.79769313e+308)
+end)
+
+CreateButton(MainPage, "Get Hammer For Free", function()
+    local ReplicatedStorage = game:GetService("ReplicatedStorage")
+    local GamepassPurchased = ReplicatedStorage.GamepassPurchased
+    GamepassPurchased:FireServer()
+end)
+
+CreateButton(DiscordPage, "Join Our Discord For More\n-leaks-sources and more! (COPY)", function()
+    setclipboard("https://discord.gg/GSTfEVvwDK")
+end)
+
+LoadButton.MouseEnter:Connect(function()
+    TweenService:Create(LoadButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(220, 220, 220)}):Play()
+end)
+
+LoadButton.MouseLeave:Connect(function()
+    TweenService:Create(LoadButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(255, 255, 255)}):Play()
+end)
+
+LoadButton.MouseButton1Click:Connect(function()
+    for i = 1, 10 do
+        LoadingFrame.BackgroundTransparency = i / 10
+        SamuraiIcon.ImageTransparency = i / 10
+        LoadingTitle.TextTransparency = i / 10
+        LoadingSubtitle.TextTransparency = i / 10
+        CreditsLabel.TextTransparency = i / 10
+        LoadButton.BackgroundTransparency = i / 10
+        LoadButton.TextTransparency = i / 10
+        LoadingStroke.Transparency = 0.7 + (i / 10) * 0.3
+        wait(0.03)
+    end
+    
+    LoadingFrame:Destroy()
+    
+    MainFrame.Visible = true
+    MainFrame.Size = UDim2.new(0, 0, 0, 0)
+    MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+    
+    TweenService:Create(MainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+        Size = UDim2.new(0, 600, 0, 450),
+        Position = UDim2.new(0.5, -300, 0.5, -225)
+    }):Play()
+    
+    SwitchTab("Helper")
+    
+    wait(2)
+    local playerBase = findPlayerBase()
+    if playerBase then
+        SelectedBase = playerBase
+    end
+end)
+
+CloseButton.MouseButton1Click:Connect(function()
+    TweenService:Create(MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.In), {
+        Size = UDim2.new(0, 0, 0, 0),
+        Position = UDim2.new(0.5, 0, 0.5, 0)
+    }):Play()
+    
+    wait(0.3)
+    ScreenGui:Destroy()
+end)
