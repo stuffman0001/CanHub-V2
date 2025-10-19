@@ -1,0 +1,191 @@
+--[[
+	WARNING: Heads up! This script has not been verified by ScriptBlox. Use at your own risk!
+]]
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+
+local gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
+gui.Name = "AutoTeleportGui"
+gui.ResetOnSpawn = false
+
+local frame = Instance.new("Frame", gui)
+frame.Size = UDim2.new(0, 320, 0, 200)
+frame.Position = UDim2.new(0.5, -160, 0.1, 0)
+frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+frame.BorderSizePixel = 0
+frame.Active = true
+frame.Draggable = false
+
+local closeBtn = Instance.new("TextButton", frame)
+closeBtn.Size = UDim2.new(0, 30, 0, 30)
+closeBtn.Position = UDim2.new(1, -35, 0, 5)
+closeBtn.Text = "❌"
+closeBtn.Font = Enum.Font.SourceSansBold
+closeBtn.TextSize = 20
+closeBtn.TextColor3 = Color3.new(1, 1, 1)
+closeBtn.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
+
+local minBtn = Instance.new("TextButton", frame)
+minBtn.Size = UDim2.new(0, 30, 0, 30)
+minBtn.Position = UDim2.new(1, -70, 0, 5)
+minBtn.Text = "-"
+minBtn.Font = Enum.Font.SourceSansBold
+minBtn.TextSize = 20
+minBtn.TextColor3 = Color3.new(1, 1, 1)
+minBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+
+local discord = Instance.new("TextLabel", frame)
+discord.Size = UDim2.new(0, 120, 0, 30)
+discord.Position = UDim2.new(0, 5, 0, 5)
+discord.Font = Enum.Font.SourceSansBold
+discord.TextSize = 16
+discord.TextColor3 = Color3.new(1, 1, 1)
+discord.BackgroundTransparency = 1
+discord.TextXAlignment = Enum.TextXAlignment.Left
+
+local teleportBtn = Instance.new("TextButton", frame)
+teleportBtn.Size = UDim2.new(1, -40, 0, 40)
+teleportBtn.Position = UDim2.new(0, 20, 0, 50)
+teleportBtn.Font = Enum.Font.SourceSansBold
+teleportBtn.TextSize = 18
+teleportBtn.BackgroundColor3 = Color3.fromRGB(0, 120, 180)
+teleportBtn.TextColor3 = Color3.new(1, 1, 1)
+
+local autoBtn = Instance.new("TextButton", frame)
+autoBtn.Size = UDim2.new(1, -40, 0, 35)
+autoBtn.Position = UDim2.new(0, 20, 0, 100)
+autoBtn.Font = Enum.Font.SourceSansBold
+autoBtn.TextSize = 16
+autoBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+autoBtn.TextColor3 = Color3.new(1, 1, 1)
+
+local langBtn = Instance.new("TextButton", frame)
+langBtn.Size = UDim2.new(1, -40, 0, 30)
+langBtn.Position = UDim2.new(0, 20, 0, 145)
+langBtn.Font = Enum.Font.SourceSansBold
+langBtn.TextSize = 16
+langBtn.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+langBtn.TextColor3 = Color3.new(1, 1, 1)
+
+local currentLang = "ar"
+local autoEnabled = false
+local autoLoop
+local isMinimized = false
+
+local contentList = {teleportBtn, autoBtn, langBtn, discord}
+
+local translations = {
+	ar = {
+		teleport = "🚀 انتقل",
+		auto_on = "🔁 إيقاف التلقائي",
+		auto_off = "🔁 تشغيل تلقائي",
+		lang = "English",
+		discord = "دسكورد 1w69",
+	},
+	en = {
+		teleport = "🚀 Teleport",
+		auto_on = "🔁 Stop Auto",
+		auto_off = "🔁 Start Auto",
+		lang = "عربي",
+		discord = "Discord 1w69",
+	}
+}
+
+local function updateLang()
+	local t = translations[currentLang]
+	teleportBtn.Text = t.teleport
+	autoBtn.Text = autoEnabled and t.auto_on or t.auto_off
+	langBtn.Text = t.lang
+	discord.Text = t.discord
+end
+
+langBtn.MouseButton1Click:Connect(function()
+	currentLang = (currentLang == "ar") and "en" or "ar"
+	updateLang()
+end)
+
+local function teleport()
+	local target = workspace:FindFirstChild("Lobby") and workspace.Lobby:FindFirstChild("TouchPart")
+	if target and target:IsA("BasePart") then
+		local char = player.Character or player.CharacterAdded:Wait()
+		local root = char:WaitForChild("HumanoidRootPart")
+		if root then
+			root.CFrame = target.CFrame + Vector3.new(0, 5, 0)
+		end
+	end
+end
+
+teleportBtn.MouseButton1Click:Connect(teleport)
+
+autoBtn.MouseButton1Click:Connect(function()
+	autoEnabled = not autoEnabled
+	updateLang()
+	if autoEnabled then
+		autoLoop = task.spawn(function()
+			while autoEnabled do
+				teleport()
+				task.wait(0.5)
+			end
+		end)
+	else
+		if autoLoop then
+			task.cancel(autoLoop)
+		end
+	end
+end)
+
+minBtn.MouseButton1Click:Connect(function()
+	local goal = {}
+	if isMinimized then
+		goal.Size = UDim2.new(0, 320, 0, 200)
+		for _, item in ipairs(contentList) do
+			item.Visible = true
+		end
+	else
+		goal.Size = UDim2.new(0, 320, 0, 35)
+		for _, item in ipairs(contentList) do
+			item.Visible = false
+		end
+	end
+	closeBtn.Visible = true
+	minBtn.Visible = true
+	isMinimized = not isMinimized
+	TweenService:Create(frame, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), goal):Play()
+end)
+
+closeBtn.MouseButton1Click:Connect(function()
+	gui:Destroy()
+end)
+
+local dragging, dragInput, dragStart, startPos
+
+frame.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+		dragging = true
+		dragStart = input.Position
+		startPos = frame.Position
+
+		input.Changed:Connect(function()
+			if input.UserInputState == Enum.UserInputState.End then
+				dragging = false
+			end
+		end)
+	end
+end)
+
+frame.InputChanged:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+		dragInput = input
+	end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+	if input == dragInput and dragging then
+		local delta = input.Position - dragStart
+		frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+	end
+end)
+
+updateLang()
