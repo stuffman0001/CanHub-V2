@@ -1,0 +1,2750 @@
+--[[
+	WARNING: Heads up! This script has not been verified by ScriptBlox. Use at your own risk!
+]]
+--[[
+I LIKE CRACKS OMG OMG OMG
+HERE IS HIS SKIDDED SCRIPT :d 
+
+ITS MADE WITH GPT SO HE IS A SKID
+AND HE BUYED A lot OF FUNCTIONS FROM A 
+OTHER SKID OMG SO SKIDD
+
+GO CRY TRIXO!
+
+--]] 
+
+
+--cracked script:
+local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/1nig1htmare1234/SCRIPTS/refs/heads/main/Orion.lua')))()
+local TeleportService = game:GetService("TeleportService")
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local Camera = workspace.CurrentCamera
+
+-- Fenster erstellen
+local Window = OrionLib:MakeWindow({
+    Name = "│Trixo v10.1 │〄Emergency Hamburg",
+    SaveConfig = false,
+    IntroText = "TrixoBeste"
+})
+local Tab = Window:MakeTab({
+    Name = "😎│Credits",
+})
+
+Tab:AddParagraph("© 2025   Trixo Scripting", "")
+
+Tab:AddButton({
+    Name = "Copying Discord Link",
+    Callback = function()
+        setclipboard("https://discord.gg/MNEv7h9yWU")
+        OrionLib:MakeNotification({
+            Name = "Discord",
+            Content = "Link Copied",
+            Image = "rbxassetid://4483345998",
+            Time = 5
+        })
+    end    
+})
+
+
+--- Player Tab
+local Tab1 = Window:MakeTab({
+    Name = "⚙│Player",
+    PremiumOnly = false
+})
+
+-- Kategorie / Section 1
+Tab1:AddSection({
+    Name = "Player"
+})
+
+local mouse = game.Players.LocalPlayer:GetMouse()
+local destroyEnabled = false
+
+Tab1:AddToggle({
+    Name = "⚫ Click to Delete",
+    Default = false,
+    Callback = function(v) destroyEnabled = v end
+})
+
+mouse.Button1Down:Connect(function()
+    if destroyEnabled and mouse.Target then mouse.Target:Destroy() end
+end)
+
+
+local player = game.Players.LocalPlayer
+local noclipEnabled = false
+
+local function noclip(enable)
+    for _, p in pairs(player.Character:GetDescendants()) do
+        if p:IsA("BasePart") then p.CanCollide = not enable end
+    end
+end
+
+Tab1:AddToggle({
+    Name = "⚫ Noclip",
+    Default = false,
+    Callback = function(v)
+        noclipEnabled = v
+        noclip(v)
+        if v then
+            game:GetService("RunService").Stepped:Connect(function()
+                if noclipEnabled then noclip(true) end
+            end)
+        end
+    end
+})
+
+
+-- === Player Fly Variablen ===
+local UserCharacter = nil
+local UserRootPart = nil
+
+local Flying = false
+local FlightSpeed = 50
+local FlightAcceleration = 6
+local CurrentVelocity = Vector3.zero
+local SpeedKey = Enum.KeyCode.LeftControl
+local SpeedKeyMultiplier = 2
+
+local FlightConnection = nil
+
+-- Funktion: Charakter setzen
+local function setCharacter(character)
+    UserCharacter = character
+    UserRootPart = character:WaitForChild("HumanoidRootPart")
+
+    ToggleFlight(false) -- Flug aus beim Respawn
+
+    local humanoid = character:WaitForChild("Humanoid")
+    humanoid.Seated:Connect(function(isSeated)
+        if isSeated then
+            ToggleFlight(false)
+        end
+    end)
+end
+
+-- Prüfen ob im Fahrzeug
+local function IsInVehicle()
+    if not UserCharacter then return false end
+    local humanoid = UserCharacter:FindFirstChildWhichIsA("Humanoid")
+    if humanoid and humanoid.SeatPart then
+        return true
+    end
+    return false
+end
+
+-- Flug Bewegung
+local function Flight(delta)
+    local BaseVelocity = Vector3.zero
+
+    if not UserInputService:GetFocusedTextBox() then
+        if UserInputService:IsKeyDown(Enum.KeyCode.W) then
+            BaseVelocity += Camera.CFrame.LookVector * FlightSpeed
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.S) then
+            BaseVelocity -= Camera.CFrame.LookVector * FlightSpeed
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.A) then
+            BaseVelocity -= Camera.CFrame.RightVector * FlightSpeed
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.D) then
+            BaseVelocity += Camera.CFrame.RightVector * FlightSpeed
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
+            BaseVelocity += Vector3.yAxis * FlightSpeed
+        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then
+            BaseVelocity -= Vector3.yAxis * FlightSpeed
+        end
+        if UserInputService:IsKeyDown(SpeedKey) then
+            BaseVelocity *= SpeedKeyMultiplier
+        end
+    end
+
+    if UserRootPart and not UserRootPart.Anchored then
+        CurrentVelocity = CurrentVelocity:Lerp(BaseVelocity, math.clamp(delta * FlightAcceleration, 0, 1))
+        UserRootPart.Velocity = CurrentVelocity + Vector3.new(0, 2, 0)
+        UserRootPart.CFrame = CFrame.lookAt(UserRootPart.Position, UserRootPart.Position + Camera.CFrame.LookVector)
+    end
+end
+
+-- Flug an/aus
+function ToggleFlight(enable)
+    if IsInVehicle() then
+        warn("Fliegen deaktiviert: Spieler sitzt im Fahrzeug.")
+        if FlightConnection then
+            FlightConnection:Disconnect()
+            FlightConnection = nil
+        end
+        Flying = false
+        return false
+    end
+
+    if enable then
+        if not Flying then
+            Flying = true
+            FlightConnection = RunService.RenderStepped:Connect(Flight)
+        end
+    else
+        Flying = false
+        if FlightConnection then
+            FlightConnection:Disconnect()
+            FlightConnection = nil
+        end
+    end
+    return true
+end
+
+-- Fly Toggle unter Noclip Toggle
+Tab1:AddToggle({
+    Name = "⚫ Player Fly",
+    Default = false,
+    Callback = function(Value)
+        local success = ToggleFlight(Value)
+        if not success then
+            warn("Fliegen konnte nicht aktiviert werden, weil du im Auto sitzt.")
+            Tab1:Refresh() -- Optional: GUI aktualisieren wenn Toggle nicht möglich
+        end
+    end
+})
+
+-- Anti-Fall/Damage Funktion
+local RunService = game:GetService("RunService")
+local antiFallEnabled = false
+local antiFallConnection = nil
+
+function AntiFallFunction(Value) 
+    antiFallEnabled = Value
+    if antiFallEnabled and not antiFallConnection then
+        antiFallConnection = RunService.RenderStepped:Connect(function()
+            local character = player.Character
+            if character then
+                local humanoid = character:FindFirstChild("Humanoid")
+                local rootPart = character:FindFirstChild("HumanoidRootPart")
+                if rootPart and humanoid then
+                    if humanoid:GetState() == Enum.HumanoidStateType.Freefall then
+                        local velocity = rootPart.Velocity
+                        if velocity.Y < 0 then
+                            rootPart.Velocity = Vector3.new(velocity.X, math.max(velocity.Y, -15), velocity.Z)
+                        end
+                    end
+                    local raycastParams = RaycastParams.new()
+                    raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
+                    raycastParams.FilterDescendantsInstances = {character}
+                    local ray = workspace:Raycast(rootPart.Position, Vector3.new(0, -8, 0), raycastParams)
+                    if ray and rootPart.Velocity.Y < -50 then
+                        rootPart.Velocity = Vector3.new(0, 0, 0)
+                    end
+                end
+            end
+        end)
+    elseif not antiFallEnabled and antiFallConnection then
+        antiFallConnection:Disconnect()
+        antiFallConnection = nil
+    end
+end
+
+Tab1:AddToggle({
+    Name = "⚫ Anti-Fall/Damage",
+    Default = false,
+    Callback = function(Value)
+        AntiFallFunction(Value)
+    end
+})
+
+-- Services
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+-- Variablen
+local player = Players.LocalPlayer
+local AntiTaserEnabled = false
+local antiTaserConnections = {}
+local NORMAL_WALKSPEED = 20
+local charAddedConnection
+
+-- Disconnect Funktion
+local function disconnectAntiTaser()
+    for _, c in ipairs(antiTaserConnections) do
+        if c and c.Disconnect then
+            pcall(function() c:Disconnect() end)
+        end
+    end
+    antiTaserConnections = {}
+
+    if charAddedConnection then
+        charAddedConnection:Disconnect()
+        charAddedConnection = nil
+    end
+end
+
+-- Setup Funktion
+local function setupAntiTaserForCharacter(char)
+    disconnectAntiTaser()
+    if not char then return end
+
+    local humanoid = char:FindFirstChildOfClass("Humanoid")
+    local hrp = char:FindFirstChild("HumanoidRootPart")
+
+    if not humanoid then
+        humanoid = char:WaitForChild("Humanoid", 5)
+        if not humanoid then return end
+    end
+
+    -- Verhindert Taser-Effekte
+    table.insert(antiTaserConnections, humanoid.StateChanged:Connect(function(_, new)
+        if new == Enum.HumanoidStateType.PlatformStanding or new == Enum.HumanoidStateType.Physics then
+            pcall(function()
+                humanoid.PlatformStand = false
+                humanoid:ChangeState(Enum.HumanoidStateType.Running)
+            end)
+        end
+    end))
+
+    -- Fix Heartbeat Loop
+    table.insert(antiTaserConnections, RunService.Heartbeat:Connect(function()
+        if not humanoid.Parent then return end
+        if humanoid.PlatformStand then
+            pcall(function() humanoid.PlatformStand = false end)
+        end
+        if humanoid.WalkSpeed and humanoid.WalkSpeed < NORMAL_WALKSPEED then
+            pcall(function() humanoid.WalkSpeed = NORMAL_WALKSPEED end)
+        end
+        if hrp and hrp.Anchored then
+            pcall(function() hrp.Anchored = false end)
+        end
+    end))
+end
+
+
+-- Kategorie / Section 1
+Tab1:AddSection({
+    Name = "Taser"
+})
+
+-- Toggle im UI
+Tab1:AddToggle({
+    Name = "⚫ Anti-Taser",
+    Default = false,
+    Callback = function(Value)
+        AntiTaserEnabled = Value
+        if AntiTaserEnabled then
+            setupAntiTaserForCharacter(player.Character or player.CharacterAdded:Wait())
+
+            -- Nur eine Verbindung erlauben
+            if not charAddedConnection then
+                charAddedConnection = player.CharacterAdded:Connect(function(newChar)
+                    task.wait(0.8)
+                    if AntiTaserEnabled then
+                        setupAntiTaserForCharacter(newChar)
+                    end
+                end)
+            end
+        else
+            disconnectAntiTaser()
+        end
+    end
+})
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+
+local LocalPlayer = Players.LocalPlayer
+
+local REMOTE_FOLDER = "Bnl"
+local REMOTE_ID = "c6011f40-2809-4686-a297-33283dd11715"
+local AUTO_TASER_INTERVAL = 0.5
+local MAX_TASE_RANGE = 80
+
+
+local function getTaserPosition()
+    local char = LocalPlayer.Character
+    if not char then return nil, nil end
+    local taser = char:FindFirstChild("Taser")
+    if taser then
+        if taser:IsA("Tool") then
+            local handle = taser:FindFirstChild("Handle")
+            if handle and handle:IsA("BasePart") then
+                return handle.Position, taser
+            end
+        elseif typeof(taser.Position) == "Vector3" then
+            return taser.Position, taser
+        end
+    end
+    local hrp = char:FindFirstChild("HumanoidRootPart")
+    if hrp and hrp:IsA("BasePart") then
+        return hrp.Position, nil
+    end
+    return nil, nil
+end
+
+local function findNearestEnemy(maxRange)
+    local pos = getTaserPosition()
+    if not pos then return nil end
+    local taserPos = pos
+    local nearestPlayer, nearestDist
+    for _, pl in ipairs(Players:GetPlayers()) do
+        if pl ~= LocalPlayer and pl.Team ~= LocalPlayer.Team then
+            local char = pl.Character
+            local humanoid = char and char:FindFirstChildOfClass("Humanoid")
+            local hrp = char and char:FindFirstChild("HumanoidRootPart")
+            if humanoid and hrp then
+                local dist = (hrp.Position - taserPos).Magnitude
+                if (not maxRange or dist <= maxRange) and (not nearestDist or dist < nearestDist) then
+                    nearestDist = dist
+                    nearestPlayer = pl
+                end
+            end
+        end
+    end
+    return nearestPlayer
+end
+
+local function fireTaserAtTarget()
+    local taserPos, taserObj = getTaserPosition()
+    if not taserPos then return end
+    local target = findNearestEnemy(MAX_TASE_RANGE)
+    if not target then return end
+    local targetChar = target.Character
+    if not targetChar then return end
+    local hrp = targetChar:FindFirstChild("HumanoidRootPart")
+    if not hrp then return end
+    local aimPos = hrp.Position
+    local dir = (aimPos - taserPos)
+    dir = dir.Magnitude == 0 and Vector3.zero or dir.Unit
+    local args = {
+        [1] = taserObj,
+        [2] = aimPos,
+        [3] = dir
+    }
+    local folder = ReplicatedStorage:FindFirstChild(REMOTE_FOLDER)
+    if not folder then return end
+    local remote = folder:FindFirstChild(REMOTE_ID)
+    if not remote then return end
+    if remote:IsA("RemoteEvent") then
+        remote:FireServer(unpack(args))
+    elseif remote:IsA("RemoteFunction") then
+        pcall(function()
+            remote:InvokeServer(unpack(args))
+        end)
+    end
+end
+
+local autoEnabled = false
+local lastTase = 0
+
+RunService.RenderStepped:Connect(function()
+    if autoEnabled and tick() - lastTase >= AUTO_TASER_INTERVAL then
+        fireTaserAtTarget()
+        lastTase = tick()
+    end
+end)
+
+Tab1:AddToggle({
+    Name = "⚫ Auto Taser",
+    Default = false,
+    Callback = function(Value)
+        autoEnabled = Value
+        if Value then
+            OrionLib:MakeNotification({
+                Name = "Auto Taser Enabled",
+                Content = "Automatic tasing is now active.",
+                Time = 2
+            })
+        else
+            OrionLib:MakeNotification({
+                Name = "Auto Taser Disabled",
+                Content = "Automatic tasing has been stopped.",
+                Time = 2
+            })
+        end
+    end
+})
+--------------------------------------------------------
+
+----------------------------------------------------------------------
+local RunService = game:GetService("RunService")
+local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+
+local noclipEnabled = false
+local noclipConnection = nil
+local function SetNoclipMode(enable)
+    for _, part in pairs(character:GetDescendants()) do
+        if part:IsA("BasePart") then
+            part.CanCollide = not enable
+        end
+    end
+end
+
+player.CharacterAdded:Connect(function(newCharacter)
+    character = newCharacter
+    if noclipEnabled then
+        SetNoclipMode(true)
+    end
+end)
+
+
+player.CharacterAdded:Connect(function()
+    wait(0.1)
+    character, humanoid = getCharacter()
+end)
+
+
+
+
+local button = script.Parent
+local player = game.Players.LocalPlayer -- Oyuncu
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+
+-- Kategorie / Section 1
+Tab1:AddSection({
+    Name = "Extra"
+})
+
+Tab1:AddButton({
+    Name = "⚫ Jump from Vehicle/Seat",
+    Callback = function()
+        if humanoid then
+            humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+        end
+    end
+})
+
+Tab1:AddButton({
+	Name = "⚫ Reset Character",
+	Callback = function()
+		local player = game.Players.LocalPlayer
+		local character = player.Character or player.CharacterAdded:Wait()
+		local humanoid = character:FindFirstChildOfClass("Humanoid")
+		if humanoid then
+			humanoid.Health = 0
+		end
+	end    
+})
+
+Players.PlayerAdded:Connect(function(player)
+    player.CharacterAdded:Connect(function()
+        if isEnemy(player) then
+            wait(0.1)
+        end
+    end)
+end)
+
+
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+local jumpBoostPower = 350
+
+Tab1:AddSlider({
+    Name = "⚫ Jump Power",
+    Min = 0,
+    Max = 350,
+    Default = 0,
+    Color = Color3.fromRGB(69,64,64),
+    Increment = 1,
+    ValueName = "Power",
+    Callback = function(Value)
+        jumpBoostPower = Value
+    end    
+})
+
+humanoid.Jumping:Connect(function()
+    if jumpBoostPower > 0 then
+        humanoidRootPart.AssemblyLinearVelocity = Vector3.new(
+            humanoidRootPart.AssemblyLinearVelocity.X,
+            jumpBoostPower,
+            humanoidRootPart.AssemblyLinearVelocity.Z
+        )
+    end
+end)
+
+
+-- Charakter beim Join / Respawn setzen
+Players.LocalPlayer.CharacterAdded:Connect(setCharacter)
+if Players.LocalPlayer.Character then
+    setCharacter(Players.LocalPlayer.Character)
+end
+
+local Tab2 = Window:MakeTab({
+	Name = "🛺│Car Fly",
+	PremiumOnly = false
+})
+
+-- Kategorie / Section 1
+Tab2:AddSection({
+    Name = "Fly"
+})
+
+local player = game.Players.LocalPlayer
+local button = script.Parent
+
+local function teleportToVehicle()
+	local vehicle = workspace.Vehicles:FindFirstChild(player.Name)
+	
+	if vehicle then
+		if vehicle:FindFirstChild("Body") and vehicle.Body:FindFirstChild("Mass") then
+			vehicle.PrimaryPart = vehicle.Body.Mass
+		end
+
+		local character = player.Character
+		if character and character:FindFirstChild("HumanoidRootPart") then
+			local targetLocation = character.HumanoidRootPart.CFrame * CFrame.new(0, 0, -10)
+			vehicle:PivotTo(targetLocation)
+		end
+
+		local driveSeat = vehicle:FindFirstChild("DriveSeat")
+		if driveSeat and driveSeat:IsA("VehicleSeat") then
+			driveSeat:Sit(character.Humanoid)
+		end
+	end
+end
+
+--------------------------------------------------------
+
+
+local flightGuiEnabled = false
+local flightEnabled = false
+local flightSpeed = 1
+local flightGui
+local guiFlightDirection = Vector3.new(0, 0, 0) 
+local buttonDirections = {
+    W = Vector3.new(0, 0, -1),
+    A = Vector3.new(-1, 0, 0),
+    S = Vector3.new(0, 0, 1),
+    D = Vector3.new(1, 0, 0),
+}
+
+local function createFlightGui()
+    local screenGui = Instance.new("ScreenGui", game.Players.LocalPlayer.PlayerGui)
+    screenGui.Name = "FlightControlGui"
+    screenGui.Enabled = false
+
+    local frame = Instance.new("Frame", screenGui)
+    frame.AnchorPoint = Vector2.new(0.5, 0.5)
+    frame.Position = UDim2.new(0.5, 0, 0.8, 0)
+    frame.Size = UDim2.new(0, 200, 0, 200)
+    frame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    frame.BackgroundTransparency = 0.2
+    local drag = Instance.new("UIDragDetector", frame)
+
+    local uiCorner = Instance.new("UICorner", frame)
+    uiCorner.CornerRadius = UDim.new(0.1, 0)
+
+    local buttonSize = UDim2.new(0, 60, 0, 60)
+    local positions = {
+        W = UDim2.new(0.5, -30, 0, 0),
+        A = UDim2.new(0, 0, 0.5, -30),
+        S = UDim2.new(0.5, -30, 1, -60),
+        D = UDim2.new(1, -60, 0.5, -30),
+    }
+    local rotations = {
+        W = 0,
+        A = -90,
+        S = 180,
+        D = 90,
+    }
+
+    for key, direction in pairs(buttonDirections) do
+        local button = Instance.new("ImageButton", frame)
+        button.Name = key .. "Button"
+        button.Position = positions[key]
+        button.Size = buttonSize
+        button.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+        button.BackgroundTransparency = 0.1
+        button.Image = "rbxassetid://11432834725"
+        button.Rotation = rotations[key]
+
+        local buttonCorner = Instance.new("UICorner", button)
+        buttonCorner.CornerRadius = UDim.new(0.1, 0)
+
+        button.MouseButton1Down:Connect(function()
+            guiFlightDirection = guiFlightDirection + direction
+        end)
+        button.MouseButton1Up:Connect(function()
+            if direction == buttonDirections.W then
+                guiFlightDirection = Vector3.new(guiFlightDirection.X, guiFlightDirection.Y, 0)
+            elseif direction == buttonDirections.A then
+                guiFlightDirection = Vector3.new(0, guiFlightDirection.Y, guiFlightDirection.Z)
+            elseif direction == buttonDirections.S then
+                guiFlightDirection = Vector3.new(guiFlightDirection.X, guiFlightDirection.Y, 0)
+            elseif direction == buttonDirections.D then
+                guiFlightDirection = Vector3.new(0, guiFlightDirection.Y, guiFlightDirection.Z)
+            end
+        end)
+    end
+
+    return screenGui
+end
+
+local function toggleFlightGui(Value)
+    if not flightGui then
+        flightGui = createFlightGui()
+    end
+    guiFlightDirection = Vector3.zero
+    flightGui.Enabled = Value
+    flightGuiEnabled = Value
+end
+
+-- Define UserInputService
+local UserInputService = game:GetService("UserInputService")
+
+
+Tab2:AddToggle({
+    Name = "🟢 Car Fly (Nicht Hoch Fligen)",
+    Default = false,
+    Callback = function(Value)
+        flightEnabled = Value
+    end
+})
+
+Tab2:AddToggle({
+    Name = "🟢 Mobile Fly Menu",
+    Default = false,
+    Callback = function(Value)
+        toggleFlightGui(Value)
+    end
+})
+
+-- Render step for movement
+game:GetService("RunService").RenderStepped:Connect(function() 
+    local Character = game.Players.LocalPlayer.Character
+    if flightEnabled then
+        if Character then
+            if Character:FindFirstChild("Humanoid") then
+                local SeatPart = Character:FindFirstChild("Humanoid").SeatPart
+                if SeatPart and SeatPart.Name == "DriveSeat" then
+                    local Vehicle = SeatPart.Parent
+                    if Vehicle then
+                        Character.Parent = Vehicle
+                        if not Vehicle.PrimaryPart then
+                            Vehicle.PrimaryPart = SeatPart
+                        end
+
+                        local PrimaryPartCFrame = Vehicle:GetPrimaryPartCFrame()
+                        local cameraLook = workspace.CurrentCamera.CFrame.LookVector
+
+                        Vehicle:SetPrimaryPartCFrame(CFrame.new(PrimaryPartCFrame.Position, PrimaryPartCFrame.Position + cameraLook) *
+                            CFrame.new(
+                                ((UserInputService:IsKeyDown(Enum.KeyCode.D) and flightSpeed or 0) - 
+                                 (UserInputService:IsKeyDown(Enum.KeyCode.A) and flightSpeed or 0)) + guiFlightDirection.X * flightSpeed,
+                                ((UserInputService:IsKeyDown(Enum.KeyCode.E) and flightSpeed / 2 or 0) - 
+                                 (UserInputService:IsKeyDown(Enum.KeyCode.Q) and flightSpeed / 2 or 0)) + guiFlightDirection.Y * flightSpeed,
+                                ((UserInputService:IsKeyDown(Enum.KeyCode.S) and flightSpeed or 0) - 
+                                 (UserInputService:IsKeyDown(Enum.KeyCode.W) and flightSpeed or 0)) + guiFlightDirection.Z * flightSpeed
+                            ))
+                        SeatPart.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+                        SeatPart.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
+                    end
+                end
+            end
+        end
+    else
+        if Character then
+            Character.Parent = defaultCharacterParent or Character.Parent
+            defaultCharacterParent = Character.Parent
+        end
+    end
+end)
+
+Tab2:AddBind({
+    Name = "🟢 Car fly Keybind",
+    Default = Enum.KeyCode.X,
+    Hold = false,
+    Callback = function()
+        flightEnabled = not flightEnabled
+        toggleCarFlyButton:Set(flightEnabled)
+    end   
+})
+
+
+------------------------------
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local Workspace = game:GetService("Workspace")
+
+local VehiclesFolder = Workspace:WaitForChild("Vehicles")
+
+local function onSliderValueChanged(value)
+    local playerVehicle = VehiclesFolder:FindFirstChild(LocalPlayer.Name)
+    if playerVehicle and playerVehicle:IsA("Model") and playerVehicle:GetAttribute("MaxAccelerateForce") ~= nil then
+        playerVehicle:SetAttribute("MaxAccelerateForce", value)
+    end
+end
+
+VehiclesFolder.ChildAdded:Connect(function(child)
+    if child.Name == LocalPlayer.Name and child:IsA("Model") then
+    end
+end)
+
+VehiclesFolder.ChildRemoved:Connect(function(child)
+    if child.Name == LocalPlayer.Name then
+    end
+end)
+
+
+ -----------------------------------------------------
+ local function onSliderValueChanged(value)
+    local playerVehicle = VehiclesFolder:FindFirstChild(LocalPlayer.Name)
+    if playerVehicle and playerVehicle:IsA("Model") and playerVehicle:GetAttribute("ReverseMaxSpeed") ~= nil then
+        playerVehicle:SetAttribute("ReverseMaxSpeed", value)
+    end
+end
+
+VehiclesFolder.ChildAdded:Connect(function(child)
+    if child.Name == LocalPlayer.Name and child:IsA("Model") then
+    end
+end)
+
+VehiclesFolder.ChildRemoved:Connect(function(child)
+    if child.Name == LocalPlayer.Name then
+    end
+end)
+
+ -----------------------------------------------------
+ local function onSliderValueChanged(value)
+    local playerVehicle = VehiclesFolder:FindFirstChild(LocalPlayer.Name)
+    if playerVehicle and playerVehicle:IsA("Model") and playerVehicle:GetAttribute("MaxSpeed") ~= nil then
+        playerVehicle:SetAttribute("MaxSpeed", value)
+    end
+end
+
+VehiclesFolder.ChildAdded:Connect(function(child)
+    if child.Name == LocalPlayer.Name and child:IsA("Model") then
+    end
+end)
+
+VehiclesFolder.ChildRemoved:Connect(function(child)
+    if child.Name == LocalPlayer.Name then
+    end
+end)
+
+------------------------------------------------
+ local function onSliderValueChanged(value)
+    local playerVehicle = VehiclesFolder:FindFirstChild(LocalPlayer.Name)
+    if playerVehicle and playerVehicle:IsA("Model") and playerVehicle:GetAttribute("MaxBrakeForce") ~= nil then
+        playerVehicle:SetAttribute("MaxBrakeForce", value)
+    end
+end
+
+VehiclesFolder.ChildAdded:Connect(function(child)
+    if child.Name == LocalPlayer.Name and child:IsA("Model") then
+    end
+end)
+
+VehiclesFolder.ChildRemoved:Connect(function(child)
+    if child.Name == LocalPlayer.Name then
+    end
+end)
+
+
+-----------------------------------------------------------
+local lplr = game:GetService("Players").LocalPlayer
+
+local settings = {
+    fuelcapacity = false,
+    inffual = false,
+    godcar = false,
+
+}
+task.defer(function()
+    while task.wait() do
+        if settings.inffual then
+            workspace.Vehicles[lplr.Name]:SetAttribute("CurrentFuel", math.huge)
+        end
+    end
+end)
+
+
+
+task.defer(function()
+    while task.wait() do
+        if settings.fuelcapacity then
+            workspace.Vehicles[lplr.Name]:SetAttribute("IsOn", true)
+        end
+    end
+end)
+
+
+
+--god car
+task.defer(function()
+    while task.wait() do
+        if settings.godcar then
+            workspace.Vehicles[lplr.Name]:SetAttribute("CurrentHealth", math.huge)
+        end
+    end
+end)
+
+
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local Camera = workspace.CurrentCamera
+local Player = Players.LocalPlayer
+
+local Flying = false
+local FlightSpeed = 60
+local Acceleration = 10
+local SpeedKey = Enum.KeyCode.LeftControl
+local SpeedKeyMultiplier = 3
+local CurrentVelocity = Vector3.zero
+local CarModel = nil
+local Connection = nil
+
+local Keys = {
+	W = false,
+	S = false,
+	A = false,
+	D = false
+}
+
+UserInputService.InputBegan:Connect(function(input, gpe)
+	if gpe then return end
+	if input.KeyCode == Enum.KeyCode.W then Keys.W = true end
+	if input.KeyCode == Enum.KeyCode.S then Keys.S = true end
+	if input.KeyCode == Enum.KeyCode.A then Keys.A = true end
+	if input.KeyCode == Enum.KeyCode.D then Keys.D = true end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+	if input.KeyCode == Enum.KeyCode.W then Keys.W = false end
+	if input.KeyCode == Enum.KeyCode.S then Keys.S = false end
+	if input.KeyCode == Enum.KeyCode.A then Keys.A = false end
+	if input.KeyCode == Enum.KeyCode.D then Keys.D = false end
+end)
+
+local function findVehicleModel()
+	local char = Player.Character or Player.CharacterAdded:Wait()
+	for _, v in ipairs(workspace:GetDescendants()) do
+		if v:IsA("Seat") or v:IsA("VehicleSeat") then
+			if v.Occupant and v.Occupant.Parent == char then
+				local model = v:FindFirstAncestorOfClass("Model")
+				if model then
+					if not model.PrimaryPart then
+						local base = model:FindFirstChild("PrimaryPart") or model:FindFirstChildWhichIsA("BasePart")
+						if base then
+							model.PrimaryPart = base
+						else
+							warn("Kein PrimaryPart gefunden im Fahrzeug!")
+							return nil
+						end
+					end
+					return model
+				end
+			end
+		end
+	end
+
+	warn("Du sitzt in keinem Sitz, oder Sitz ist nicht in einem Model.")
+	return nil
+end
+
+
+local function driveStep(dt)
+	if not CarModel or not CarModel.PrimaryPart then return end
+
+	local direction = Vector3.zero
+	if Keys.W then direction += Camera.CFrame.LookVector end
+	if Keys.S then direction -= Camera.CFrame.LookVector end
+	if Keys.A then direction -= Camera.CFrame.RightVector end
+	if Keys.D then direction += Camera.CFrame.RightVector end
+
+	direction = Vector3.new(direction.X, 0, direction.Z)
+
+	local speed = FlightSpeed
+	if UserInputService:IsKeyDown(SpeedKey) then
+		speed = speed * SpeedKeyMultiplier
+	end
+
+	local targetVelocity = direction.Magnitude > 0 and direction.Unit * speed or Vector3.zero
+	CurrentVelocity = CurrentVelocity:Lerp(targetVelocity, math.clamp(dt * Acceleration, 0, 1))
+
+	local root = CarModel.PrimaryPart
+	local pos = root.Position
+
+	local newCF
+	if CurrentVelocity.Magnitude > 1 then
+		local lookAt = pos + Vector3.new(CurrentVelocity.X, 0, CurrentVelocity.Z)
+		local targetCF = CFrame.new(pos, lookAt)
+
+		newCF = root.CFrame:Lerp(CFrame.new(pos + CurrentVelocity * dt, lookAt), 0.15)
+	else
+		newCF = root.CFrame + CurrentVelocity * dt
+	end
+
+	CarModel:PivotTo(newCF)
+end
+
+local function ToggleCarSteal(state)
+	Flying = state
+	if Flying then
+		CarModel = findVehicleModel()
+		if not CarModel then
+			warn("Kein Fahrzeug gefunden! Setz dich zuerst auf einen Sitz.")
+			return
+		end
+		Connection = RunService.Heartbeat:Connect(driveStep)
+	else
+		if Connection then Connection:Disconnect() end
+		Connection = nil
+	end
+end
+
+local function ensurePlayerInVehicle()
+    local vehicle = workspace:FindFirstChild("Vehicles") and workspace.Vehicles:FindFirstChild(LocalPlayer.Name)
+
+    if vehicle and character then
+        local humanoid = character:FindFirstChildWhichIsA("Humanoid")
+        local driveSeat = vehicle:FindFirstChild("DriveSeat")
+
+        if humanoid and driveSeat and humanoid.SeatPart ~= driveSeat then
+            driveSeat:Sit(humanoid)
+        end
+    end
+end
+
+-- Variablen
+local player = game.Players.LocalPlayer
+local vehicle = workspace:WaitForChild("Vehicles"):FindFirstChild(player.Name)
+local rainbowSpeed = 5
+local rainbowAktiv = false
+local fahrzeugColor = Color3.fromRGB(255, 255, 255)
+local FlightSpeed = 50
+
+local kennzeichenText = "Trixo"
+local frontPlateColor = Color3.fromRGB(000, 000, 000)
+local backPlateColor = Color3.fromRGB(000, 000, 000)
+
+-- Funktionen
+local function getRainbowColor(t)
+	local hue = (t % rainbowSpeed) / rainbowSpeed
+	return Color3.fromHSV(hue, 1, 1)
+end
+
+local function applyColorToVehicle(color)
+	if vehicle and vehicle:IsA("Model") then
+		for _, part in ipairs(vehicle:GetDescendants()) do
+			if part:IsA("BasePart") then
+				part.Color = color
+				part.Material = Enum.Material.SmoothPlastic
+			end
+		end
+	end
+end
+
+local function startRainbow()
+	task.spawn(function()
+		while rainbowAktiv do
+			if vehicle then
+				applyColorToVehicle(getRainbowColor(tick()))
+			end
+			task.wait(0.1)
+		end
+	end)
+end
+
+
+
+-- defensive checks + Debug helper
+local function safePrint(...)
+    if typeof(print) == "function" then
+        print("[CarMod] ", ...)
+    end
+end
+
+local function safeCall(fn, ...)
+    if type(fn) ~= "function" then
+        safePrint("safeCall: versucht non-function aufzurufen")
+        return false
+    end
+    local ok, res = pcall(fn, ...)
+    if not ok then
+        safePrint("Fehler in safeCall:", res)
+    end
+    return ok, res
+end
+
+-- check Window
+if typeof(Window) ~= "table" and typeof(Window) ~= "userdata" then
+    safePrint("Fehler: 'Window' ist nil oder nicht vorhanden. Make sure the UI library is loaded.")
+    return
+end
+
+-- Kategorie / Section 1
+Tab2:AddSection({
+    Name = "Exsta"
+})
+
+
+local lplr = game:GetService("Players").LocalPlayer
+
+local lplr = game:GetService("Players").LocalPlayer
+
+Tab2:AddButton({
+	Name = "🟢 CarGod",
+	Callback = function()
+        local vehicleGodMode = true  
+        local lastVehicle = nil
+        
+        
+        local function updateVehicle()
+            if not vehicleGodMode then return end
+            if not lastVehicle or not lastVehicle.Parent then
+                local vehiclesFolder = workspace:FindFirstChild("Vehicles")
+                lastVehicle = vehiclesFolder and vehiclesFolder:FindFirstChild(player.Name) or nil
+            end
+        
+            if lastVehicle then
+                lastVehicle:SetAttribute("IsOn", true)
+                lastVehicle:SetAttribute("currentHealth", 500)
+                lastVehicle:SetAttribute("currentFuel", 45)
+            end
+        end
+        
+        RunService.Heartbeat:Connect(updateVehicle) 
+  	end
+})
+
+Tab2:AddButton({
+	Name = "🟢 Stel my Vehicle",
+	Callback = function()
+		ensurePlayerInVehicle()
+  	end    
+})
+
+Tab2:AddToggle({
+	Name = "🟢 🌈 Rainbow Fahrzeugfarbe",
+	Default = true,
+	Callback = function(Value)
+		rainbowAktiv = Value
+		if rainbowAktiv then
+			startRainbow()
+		else
+			applyColorToVehicle(fahrzeugColor)
+		end
+	end
+})
+
+-- Kategorie / Section 1
+Tab2:AddSection({
+    Name = "Speed Boost"
+})
+
+-- Services
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local player = Players.LocalPlayer
+
+-- State Variablen
+local boostEnabled = false
+local boostConnection = nil
+local speedValue = 30 -- default studs/sec
+local healthConn = nil
+local originalMaxHealth = nil
+local humanoidRef = nil
+
+-- === Helpers ===
+local function getCharacterParts()
+    if not player.Character then return nil end
+    local char = player.Character
+    local humanoid = char:FindFirstChildOfClass("Humanoid")
+    local hrp = char:FindFirstChild("HumanoidRootPart") or char:FindFirstChild("Torso") or char:FindFirstChild("LowerTorso")
+    return char, humanoid, hrp
+end
+
+-- === Speed Boost Logic ===
+local function startBoostEnforcer()
+    if boostConnection then return end
+    boostConnection = RunService.RenderStepped:Connect(function()
+        if not boostEnabled then return end
+        local char, humanoid, hrp = getCharacterParts()
+        if not hrp or not hrp.Parent then return end
+
+        -- aktuelle Geschwindigkeit holen
+        local vel = hrp.AssemblyLinearVelocity
+        if type(vel) ~= "Vector3" then vel = hrp.Velocity end
+
+        -- nur boosten, wenn Spieler schon > 5 s/s nach vorn will
+        local forward = hrp.CFrame.LookVector
+        local fwdSpeed = vel:Dot(forward)   -- Komponente in Blickrichtung
+        if fwdSpeed < 5 then return end     -- Stillstand → nichts tun
+
+        -- Y-Komponente erhalten (Sprung etc.)
+        local desired = Vector3.new(forward.X * speedValue, vel.Y, forward.Z * speedValue)
+        pcall(function()
+            hrp.AssemblyLinearVelocity = desired
+        end)
+    end)
+end
+
+local function stopBoostEnforcer()
+    if boostConnection then
+        pcall(function() boostConnection:Disconnect() end)
+        boostConnection = nil
+    end
+end
+
+-- === No Damage Logic ===
+local function enableNoDamage()
+    if healthConn then
+        pcall(function() healthConn:Disconnect() end)
+        healthConn = nil
+    end
+    local char, humanoid = getCharacterParts()
+    if not humanoid then return end
+    humanoidRef = humanoid
+    originalMaxHealth = humanoid.MaxHealth
+    pcall(function()
+        humanoid.MaxHealth = math.max(humanoid.MaxHealth, 100000)
+        humanoid.Health = humanoid.MaxHealth
+    end)
+    healthConn = humanoid:GetPropertyChangedSignal("Health"):Connect(function()
+        pcall(function()
+            if humanoid and humanoid.Parent then
+                if humanoid.Health < humanoid.MaxHealth then
+                    humanoid.Health = humanoid.MaxHealth
+                end
+            end
+        end)
+    end)
+end
+
+local function disableNoDamage()
+    if healthConn then
+        pcall(function() healthConn:Disconnect() end)
+        healthConn = nil
+    end
+    if humanoidRef and humanoidRef.Parent and originalMaxHealth then
+        pcall(function()
+            humanoidRef.MaxHealth = originalMaxHealth
+            humanoidRef.Health = math.clamp(humanoidRef.Health, 0, humanoidRef.MaxHealth)
+        end)
+    end
+    humanoidRef = nil
+    originalMaxHealth = nil
+end
+
+-- === Combined Toggle ===
+local function enableSafeSpeedBoost(val)
+    boostEnabled = val
+    if val then
+        startBoostEnforcer()
+        enableNoDamage()
+    else
+        stopBoostEnforcer()
+        disableNoDamage()
+    end
+end
+
+-- Respawn Handler
+player.CharacterAdded:Connect(function()
+    task.wait(0.3)
+    if boostEnabled then
+        enableNoDamage()
+    end
+end)
+
+Tab2:AddToggle({
+    Name = "🟢 Speed Boost (Safe Mode)",
+    Default = false,
+    Callback = function(Value)
+        enableSafeSpeedBoost(Value)
+        if Value then
+            OrionLib:MakeNotification({
+                Name = "Boost aktiviert",
+                Content = "Safe Boost + NoDamage aktiv!",
+                Image = "rbxassetid://4483345998",
+                Time = 3
+            })
+        else
+            OrionLib:MakeNotification({
+                Name = "Boost deaktiviert",
+                Content = "Boost + NoDamage aus.",
+                Image = "rbxassetid://4483345998",
+                Time = 3
+            })
+        end
+    end
+})
+
+Tab2:AddSlider({
+    Name = "🟢 Boost Speed",
+    Min = 0,
+    Max = 300,
+    Default = speedValue,
+    Color = Color3.fromRGB(0,255,120),
+    Increment = 5,
+    ValueName = "km/h",
+    Callback = function(value)
+        speedValue = math.floor(tonumber(value) or speedValue)
+        OrionLib:MakeNotification({
+            Name = "Speed geändert",
+            Content = "Boost Speed: " .. tostring(speedValue),
+            Image = "rbxassetid://4483345998",
+            Time = 2
+        })
+    end
+})
+
+
+Tab2:AddSlider({ 
+    Name = "🟢 Car Fly Speed //over 70 for a not god PC", 
+    Min = 10,
+    Max = 450, 
+    Default = (flightSpeed * 60),
+    Color = Color3.fromRGB(0,255,120),
+    Increment = 10,
+    ValueName = "Speed", 
+    Callback = function(Value)
+        flightSpeed = (Value / 50)
+    end 
+})
+
+
+local Tab3 = Window:MakeTab({
+	Name = "🌀│Teleport",
+	PremiumOnly = false
+})
+
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+
+_G.flightSpeed = 190 -- Default speed
+
+-----------------------------------------------
+-----------------------------------------------
+local RunService = game:GetService("RunService")
+local Stats = game:GetService("Stats")
+
+local minSpeed = 170
+local maxSpeed = 240
+
+-- FPS ölçümü
+local fps = 60
+RunService.RenderStepped:Connect(function(deltaTime)
+	fps = math.floor(1 / deltaTime)
+end)
+
+-- Ping (RTT) ölçümü (ms cinsinden)
+local function getPing()
+	local dataPing = Stats:FindFirstChild("Network"):FindFirstChild("Ping")
+	if dataPing then
+		return dataPing:GetValue()
+	end
+	return 100 -- varsayılan ping
+end
+
+-- Uçuş hızını güncelle
+task.spawn(function()
+	while true do
+		local currentPing = getPing()
+		local pingFactor = math.clamp(1 - (currentPing / 300), 0, 1) -- yüksek ping = yavaşlat
+
+		local fpsFactor = math.clamp(fps / 60, 0.5, 1.2) -- düşük fps = yavaşlat
+
+		local adjustedSpeed = math.clamp(minSpeed * fpsFactor * pingFactor, minSpeed, maxSpeed)
+
+		_G.flightSpeed = math.floor(adjustedSpeed)
+
+		task.wait(1) -- her saniye bir kez kontrol et
+	end
+end)
+-----------------------------------------------
+-----------------------------------------------
+
+-- Modelin 'PrimaryPart'ını ayarlama fonksiyonu
+local function setPrimaryPart(vehicleModel)
+	local body = vehicleModel:FindFirstChild("Body")
+	if body then
+		local mass = body:FindFirstChild("Mass")
+		if mass then
+			vehicleModel.PrimaryPart = mass
+			return mass
+		else
+			warn("Body modelinin içinde 'Mass' parçası bulunamadı.")
+		end
+	else
+		warn("Araç modelinde 'Body' modeli bulunamadı.")
+	end
+	return nil
+end
+
+-- Sabit hızla tween yapmak için fonksiyon
+local function createTween(targetInstance, startCFrame, endCFrame, speed)
+	local distance = (endCFrame.Position - startCFrame.Position).Magnitude
+	local duration = distance / speed
+
+	local tweenInfo = TweenInfo.new(duration, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut)
+	local tweenValue = Instance.new("CFrameValue")
+	tweenValue.Value = startCFrame
+
+	tweenValue.Changed:Connect(function()
+		if targetInstance:IsA("Model") then
+			targetInstance:PivotTo(tweenValue.Value)
+		else
+			targetInstance.CFrame = tweenValue.Value
+		end
+	end)
+
+	local tween = TweenService:Create(tweenValue, tweenInfo, {Value = endCFrame})
+	tween:Play()
+	return tween
+end
+
+-- frameTween(CFrame.new(...)) şeklinde kullanım
+function frameTween(targetCFrame)
+	local character = player.Character or player.CharacterAdded:Wait()
+	local humanoid = character:FindFirstChildOfClass("Humanoid")
+	if not humanoid then return end
+
+	local vehiclesFolder = workspace:FindFirstChild("Vehicles")
+	if not vehiclesFolder then
+		warn("Vehicles klasörü bulunamadı.")
+		return
+	end
+
+	local vehicle = vehiclesFolder:FindFirstChild(player.Name)
+	if not vehicle then
+		warn("Oyuncuya ait araç bulunamadı.")
+		return
+	end
+
+	local driveSeat = vehicle:FindFirstChild("DriveSeat")
+	if not driveSeat or not driveSeat:IsA("Seat") then
+		warn("DriveSeat bulunamadı veya uygun değil.")
+		return
+	end
+
+	if not vehicle.PrimaryPart then
+		local body = vehicle:FindFirstChild("Body")
+		if body then
+			local mass = body:FindFirstChild("Mass")
+			if mass then
+				vehicle.PrimaryPart = mass
+			else
+				warn("Body içinde 'Mass' bulunamadı.")
+				return
+			end
+		else
+			warn("Araç içinde 'Body' bulunamadı.")
+			return
+		end
+	end
+
+	driveSeat:Sit(humanoid)
+	task.wait(0.1)
+
+	local originalProps = {}
+	for _, part in pairs(vehicle:GetDescendants()) do
+		if part:IsA("BasePart") then
+			originalProps[part] = {
+				Velocity = part.Velocity,
+				RotVelocity = part.RotVelocity,
+				AssemblyLinearVelocity = part.AssemblyLinearVelocity,
+				AssemblyAngularVelocity = part.AssemblyAngularVelocity
+			}
+			part.Velocity = Vector3.zero
+			part.RotVelocity = Vector3.zero
+			part.AssemblyLinearVelocity = Vector3.zero
+			part.AssemblyAngularVelocity = Vector3.zero
+		end
+	end
+
+	local function createTween(startCF, endCF)
+		local distance = (endCF.Position - startCF.Position).Magnitude
+		local duration = distance / _G.flightSpeed
+
+		local cframe = Instance.new("CFrameValue")
+		cframe.Value = startCF
+
+		cframe.Changed:Connect(function()
+			if vehicle.PrimaryPart then
+				vehicle:SetPrimaryPartCFrame(cframe.Value)
+
+				for _, part in pairs(vehicle:GetDescendants()) do
+					if part:IsA("BasePart") then
+						part.Velocity = Vector3.zero
+						part.RotVelocity = Vector3.zero
+						part.AssemblyLinearVelocity = Vector3.zero
+						part.AssemblyAngularVelocity = Vector3.zero
+					end
+				end
+			end
+		end)
+
+		local tween = TweenService:Create(cframe, TweenInfo.new(duration, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut), {
+			Value = endCF
+		})
+
+		return tween, cframe
+	end
+
+	local function smoothMove(startCF, endCF)
+		local tween, cframe = createTween(startCF, endCF)
+		tween:Play()
+		tween.Completed:Wait()
+		cframe:Destroy()
+
+		if humanoid.SeatPart ~= driveSeat then
+			driveSeat:Sit(humanoid)
+			task.wait(0.1)
+		end
+	end
+
+	-- Sabit yükseklik belirle
+	local fixedY = 2.30769644
+
+	-- First move horizontally at fixed Y
+	local startCF = vehicle.PrimaryPart.CFrame
+	local fixedStart = CFrame.new(Vector3.new(startCF.Position.X, fixedY, startCF.Position.Z), startCF.LookVector + Vector3.new(0, 0, 1))
+	local fixedTarget = CFrame.new(Vector3.new(targetCFrame.Position.X, fixedY, targetCFrame.Position.Z), targetCFrame.LookVector + Vector3.new(0, 0, 1))
+
+	smoothMove(fixedStart, fixedTarget)
+
+	task.wait(0.2)
+
+	-- Then move to the actual target Y position
+	if math.abs(targetCFrame.Position.Y - fixedY) > 0.1 then
+		local finalTarget = CFrame.new(Vector3.new(targetCFrame.Position.X, targetCFrame.Position.Y, targetCFrame.Position.Z), targetCFrame.LookVector + Vector3.new(0, 0, 1))
+		smoothMove(fixedTarget, finalTarget)
+		task.wait(0.2)
+	end
+
+	for part, props in pairs(originalProps) do
+		if part and part.Parent then
+			part.Velocity = props.Velocity
+			part.RotVelocity = props.RotVelocity
+			part.AssemblyLinearVelocity = props.AssemblyLinearVelocity
+			part.AssemblyAngularVelocity = props.AssemblyAngularVelocity
+		end
+	end
+
+	vehicle:SetPrimaryPartCFrame(targetCFrame)
+	driveSeat:Sit(humanoid)
+
+end
+
+-- Gemeinsame Bewegungsfunktion
+local function moveVehicle(vehicle, targetCFrame)
+    if not vehicle or not targetCFrame then return end
+
+    local character = player.Character or player.CharacterAdded:Wait()
+    local humanoid = character:FindFirstChildOfClass("Humanoid")
+    local driveSeat = vehicle:FindFirstChild("DriveSeat")
+
+    if not driveSeat or not humanoid then return end
+    
+    -- Ensure we're in the vehicle
+    driveSeat:Sit(humanoid)
+    task.wait(0.1)
+    
+    -- Set primary part if needed
+    if not vehicle.PrimaryPart then
+        vehicle.PrimaryPart = driveSeat
+    end
+
+    -- Store original properties
+    local originalProperties = {}
+    for _, part in pairs(vehicle:GetDescendants()) do
+        if part:IsA("BasePart") then
+            originalProperties[part] = {
+                Velocity = part.Velocity,
+                RotVelocity = part.RotVelocity,
+                AssemblyLinearVelocity = part.AssemblyLinearVelocity,
+                AssemblyAngularVelocity = part.AssemblyAngularVelocity
+            }
+            -- Reset velocities to prevent glitching
+            part.Velocity = Vector3.new(0, 0, 0)
+            part.RotVelocity = Vector3.new(0, 0, 0)
+            part.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+            part.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
+        end
+    end
+
+    local function createTween(startCF, endCF, isDescending)
+        local distance = (endCF.Position - startCF.Position).Magnitude
+        local tweenInfo = TweenInfo.new(
+            distance / (isDescending and (_G.flightSpeed * 0.7) or _G.flightSpeed),
+            Enum.EasingStyle.Linear,  -- Changed to Linear for consistent speed
+            Enum.EasingDirection.InOut
+        )
+        
+        local cframe = Instance.new("CFrameValue")
+        cframe.Value = startCF
+        
+        cframe.Changed:Connect(function()
+            if vehicle.PrimaryPart then
+                vehicle:SetPrimaryPartCFrame(cframe.Value)
+                
+                -- Keep resetting velocities during movement to prevent glitching
+                for _, part in pairs(vehicle:GetDescendants()) do
+                    if part:IsA("BasePart") then
+                        part.Velocity = Vector3.new(0, 0, 0)
+                        part.RotVelocity = Vector3.new(0, 0, 0)
+                        part.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+                        part.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
+                    end
+                end
+            end
+        end)
+        
+        local tween = TweenService:Create(cframe, tweenInfo, {
+            Value = endCF
+        })
+        
+        return tween, cframe
+    end
+
+    local function smoothMove(startCF, endCF, isDescending)
+        local tween, cframe = createTween(startCF, endCF, isDescending)
+        tween:Play()
+        tween.Completed:Wait()
+        cframe:Destroy()
+        
+        if humanoid.SeatPart ~= driveSeat then
+            driveSeat:Sit(humanoid)
+            task.wait(0.1)
+        end
+    end
+
+    -- First go up high
+    local startCF = vehicle.PrimaryPart.CFrame
+    local upPos = startCF * CFrame.new(0, 350, 0)
+    smoothMove(startCF, upPos, false)
+    task.wait(0.1)
+
+    -- Move horizontally at height
+    local highTargetPos = CFrame.new(
+        Vector3.new(targetCFrame.Position.X, upPos.Position.Y, targetCFrame.Position.Z),
+        Vector3.new(targetCFrame.Position.X, upPos.Position.Y, targetCFrame.Position.Z) + targetCFrame.LookVector
+    )
+    smoothMove(vehicle.PrimaryPart.CFrame, highTargetPos, false)
+    task.wait(0.2)
+
+    -- Finally go down to target
+    smoothMove(vehicle.PrimaryPart.CFrame, targetCFrame, true)
+    
+    -- Restore original properties after a small delay
+    task.wait(0.2)
+    for part, props in pairs(originalProperties) do
+        if part and part.Parent then
+            part.Velocity = props.Velocity
+            part.RotVelocity = props.RotVelocity
+            part.AssemblyLinearVelocity = props.AssemblyLinearVelocity
+            part.AssemblyAngularVelocity = props.AssemblyAngularVelocity
+        end
+    end
+
+    -- Final position check
+    vehicle:SetPrimaryPartCFrame(targetCFrame)
+    driveSeat:Sit(humanoid)
+end
+
+-- Teleport zu Dealer
+Tab3:AddButton({
+    Name = "🔵 Teleport to Nearest Dealer",
+    Callback = function()
+        local character = player.Character or player.CharacterAdded:Wait()
+        local vehicle = workspace.Vehicles:FindFirstChild(player.Name)
+        if not vehicle then return end
+
+        local dealers = workspace:FindFirstChild("Dealers")
+        if not dealers then return end
+
+        local closest, shortest = nil, math.huge
+        for _, dealer in pairs(dealers:GetChildren()) do
+            if dealer:FindFirstChild("Head") then
+                local dist = (character.HumanoidRootPart.Position - dealer.Head.Position).Magnitude
+                if dist < shortest then
+                    shortest = dist
+                    closest = dealer.Head
+                end
+            end
+        end
+        if not closest then return end
+
+        frameTween(closest.CFrame + Vector3.new(0, 5, 0))
+    end
+})
+
+-- OrionLib Button: Teleport to fixed coords (player + vehicle)
+Tab3:AddButton({
+    Name = "🔵 Robbery Bank (OP)",
+    Callback = function()
+        local targetPos = Vector3.new(-1198.692993, 7.977509, 3161.447754)
+        local targetCFrame = CFrame.new(targetPos)
+
+        local character = player.Character or player.CharacterAdded:Wait()
+        local hrp = character:FindFirstChild("HumanoidRootPart")
+        local vehiclesFolder = workspace:FindFirstChild("Vehicles")
+        local vehicle = (vehiclesFolder and vehiclesFolder:FindFirstChild(player.Name)) or nil
+
+        -- Wenn Fahrzeug vorhanden: benutze frameTween / moveVehicle (sanfte Bewegung)
+        if vehicle and vehicle:IsA("Model") then
+            -- Versuche PrimaryPart zu setzen, falls nötig
+            if not vehicle.PrimaryPart and type(setPrimaryPart) == "function" then
+                pcall(function() setPrimaryPart(vehicle) end)
+            end
+            -- Fallback auf DriveSeat als PrimaryPart
+            if not vehicle.PrimaryPart then
+                local ds = vehicle:FindFirstChild("DriveSeat")
+                if ds and ds:IsA("BasePart") then
+                    vehicle.PrimaryPart = ds
+                end
+            end
+
+            -- Wenn du frameTween definiert hast, verwende es; sonst moveVehicle
+            if type(frameTween) == "function" then
+                -- frameTween erwartet ein CFrame; wir geben etwas leicht erhöhtes Ziel (vermeidet Bodencollision)
+                frameTween(targetCFrame + Vector3.new(0, 1, 0))
+            elseif type(moveVehicle) == "function" then
+                moveVehicle(vehicle, targetCFrame + CFrame.new(0,1,0))
+            else
+                -- Fallback: setze Fahrzeug PrimaryPart direkt
+                if vehicle.PrimaryPart then
+                    vehicle:SetPrimaryPartCFrame(targetCFrame + CFrame.new(0,1,0))
+                end
+                -- setze Spieler sicherlich rein, wenn Seat existiert
+                local driveSeat = vehicle:FindFirstChild("DriveSeat")
+                local humanoid = character:FindFirstChildOfClass("Humanoid")
+                if driveSeat and humanoid then
+                    driveSeat:Sit(humanoid)
+                end
+            end
+        else
+            -- Kein Fahrzeug: teleportiere nur den Spieler (leicht erhöht)
+            if hrp then
+                hrp.CFrame = targetCFrame + Vector3.new(0, 3, 0)
+            else
+                local root = character:FindFirstChild("RootPart") or character:FindFirstChildWhichIsA("BasePart")
+                if root then
+                    root.CFrame = targetCFrame + Vector3.new(0, 3, 0)
+                end
+            end
+        end
+    end
+})
+
+
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+local player = game.Players.LocalPlayer
+
+local flightSpeed = 190 -- Langsamer machen (z. B. 20 statt 60)
+
+Tab3:AddDropdown({
+    Name = "🔵 Normal Places",
+    Default = "1",
+    Options = {"Prison Out", "Prison In","Police","Tuning Garage", "Hospital", "Tuner", "Dealership", "Fire Station", "Smuggler (near clothing store)", "Truck Company", "Bus Company"},
+    Callback = function(Value)
+        local locations = {
+            ["Prison Out"] = CFrame.new(-615.5797729492188, 5.289504051208496, 2862.23681640625),
+            ["Prison In"] = CFrame.new(-572.1055297851562, 6.382352352142334, 3061.3740234375),
+            ["Police"] = CFrame.new(-1658.071899, 5.63, 2737.27),
+            ["Tuning Garage"] = CFrame.new(-1438.654053, 5.63, 118.45),
+            ["Fire Station"] = CFrame.new(-1025.360595703125, 4.500086784362793, 3899.155029296875),
+            ["Parking Garage"] = CFrame.new(-1001.6951904296875, 10.850526809692383, 3655.860595703125),
+            ["Truck Company"] = CFrame.new(704.4508666992188, 4.229461669921875, 1479.9267578125),
+            ["Smuggler (near clothing store)"] = CFrame.new(796.5571899414062, -18.67022705078125, -1526.3787841796875),
+            ["Tuner"] = CFrame.new(-1438.34705, 5.35521317, 171.125198, 0.0264777429, 0.0146148987, 0.999542534, -0.0202042889, 0.999696672, -0.0140819438, -0.9994452, -0.0198221896, 0.0267649963),
+            ["Bus Company"] = CFrame.new(-1682.2969970703125, 8.779464721679688, -1273.07763671875),
+            ["Hospital"] = CFrame.new(-278.833740234375, 7.7454142570495605, 1085.7965087890625),
+            ["Polica Station"] = CFrame.new(-1702.70166015625, 4.607900142669678, 2723.564697265625),
+            ["Dealership"] = CFrame.new(-1415.6986083984375, 4.552238464355469, 940.5262451171875),
+        }
+
+        local targetCFrame = locations[Value]
+        if not targetCFrame then return end
+
+        local vehicle = workspace:FindFirstChild("Vehicles") and workspace.Vehicles:FindFirstChild(player.Name)
+        if not vehicle or not vehicle:IsA("Model") then return end
+
+        frameTween(targetCFrame)
+    end
+})
+
+Tab3:AddDropdown({
+    Name = "🔵 Robbery Places",
+    Default = "1",
+    Options = {"Bank", "Jewellery", "Erwin Club", "Gas-N-Go Fuel", "Ares Fuel", "Tool Shop", "Farm Shop", "Osso Fuel", "Container Ship", "Clothing Store"},
+    Callback = function(Value)
+        local locations = {
+            ["Bank"] = CFrame.new(-1183.296, 10.912, 3228.297),
+            ["Jewellery"] = CFrame.new(-407.536, 21.950, 3516.854),
+            ["Erwin Club"] = CFrame.new(-1856.962, 5.706, 2990.518),
+            ["Gas-N-Go Fuel"] = CFrame.new(-1560.674, 3.944, 3813.656),
+            ["Ares Fuel"] = CFrame.new(-824.447, 4.182, 1512.941),
+            ["Tool Shop"] = CFrame.new(-767.815, 4.374, 663.494),
+            ["Farm Shop"] = CFrame.new(-887.220, 5.831, -1150.356),
+            ["Osso Fuel"] = CFrame.new(-27.464, 5.245, -749.413),
+            ["Container Ship"] = CFrame.new(1191.836, 29.550, 2140.703),
+            ["Clothing Store"] = CFrame.new(440.400, 5.520, -1438.111),
+        }
+
+        local targetCFrame = locations[Value]
+        if not targetCFrame then return end
+
+        local vehicle = workspace:FindFirstChild("Vehicles") and workspace.Vehicles:FindFirstChild(player.Name)
+        if not vehicle or not vehicle:IsA("Model") then return end
+
+        frameTween(targetCFrame)
+    end
+})
+
+local Tab4 = Window:MakeTab({
+	Name = "👁️│Esp",
+	PremiumOnly = false
+})
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local Drawing = Drawing
+
+local LocalPlayer = Players.LocalPlayer
+local ESPEnabled = false
+
+-- Wanted ESP Variables
+local WantedESPEnabled = false
+local activeWantedLabels = {}
+
+local function RemoveESP(player)
+    -- bleibt als Platzhalter, falls später benötigt
+end
+
+local function ToggleESP(value)
+    ESPEnabled = value
+end
+
+local function ToggleTeamColors(value)
+    -- entfernt: Name ESP nutzt Teamfarben nicht mehr
+end
+
+local function SetESPSize(value)
+    -- entfernt: Name ESP Größe wird nicht mehr verwendet
+end
+
+Tab4:AddToggle({
+	Name = "⚪ HealthBar ESP",
+	Default = false,
+	Callback = function(Value)
+		ESPEnabled = Value
+		if not ESPEnabled then
+			for _, player in pairs(Players:GetPlayers()) do
+				if player ~= LocalPlayer then
+					local humanoid = player.Character and player.Character:FindFirstChild("Humanoid")
+					if humanoid then
+						local healthBar = humanoid:FindFirstChild("_HealthBar")
+						if healthBar then
+							healthBar.Visible = false
+						end
+					end
+				end
+			end
+		end
+	end    
+})
+
+local function createHealthBar(player)
+    local healthBar = Drawing.new("Square")
+    healthBar.Visible = false
+    healthBar.Thickness = 0.5
+    healthBar.Transparency = 1
+
+    local healthFill = Drawing.new("Square")
+    healthFill.Visible = false
+    healthFill.Filled = true
+    healthFill.Thickness = 0.5
+    healthFill.Transparency = 1
+
+    local function update()
+        if not ESPEnabled then
+            healthBar.Visible = false
+            healthFill.Visible = false
+            return
+        end
+
+        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("Humanoid") and player.Character:FindFirstChild("HumanoidRootPart") then
+            local humanoid = player.Character.Humanoid
+            local rootPart = player.Character.HumanoidRootPart
+
+            local screenPosition, onScreen = workspace.CurrentCamera:WorldToViewportPoint(rootPart.Position)
+
+            if onScreen and humanoid.Health > 0 then
+                local healthPercent = math.clamp(humanoid.Health / humanoid.MaxHealth, 0, 1)
+                local barWidth = 3
+                local barHeight = 25
+
+                healthBar.Size = Vector2.new(barWidth, barHeight)
+                healthBar.Position = Vector2.new(screenPosition.X + 15, screenPosition.Y - barHeight / 2)
+                healthBar.Color = Color3.new(0, 0, 0)
+                healthBar.Visible = true
+
+                healthFill.Size = Vector2.new(barWidth, barHeight * healthPercent)
+                healthFill.Position = Vector2.new(healthBar.Position.X, healthBar.Position.Y + barHeight * (1 - healthPercent))
+                healthFill.Color = healthPercent <= 0.25 and Color3.new(1, 0, 0) or Color3.new(0, 1, 0)
+                healthFill.Visible = true
+            else
+                healthBar.Visible = false
+                healthFill.Visible = false
+            end
+        else
+            healthBar.Visible = false
+            healthFill.Visible = false
+        end
+    end
+
+    local connection
+    connection = RunService.RenderStepped:Connect(update)
+
+    player.AncestryChanged:Connect(function()
+        if not player:IsDescendantOf(Players) then
+            connection:Disconnect()
+            healthBar:Remove()
+            healthFill:Remove()
+        end
+    end)
+end
+
+for _, player in pairs(Players:GetPlayers()) do
+    if player ~= LocalPlayer then
+        createHealthBar(player)
+    end
+end
+
+Players.PlayerAdded:Connect(function(player)
+    if player ~= LocalPlayer then
+        createHealthBar(player)
+    end
+end)
+
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+
+local ESPEnabled = false
+local UseTeamColor = false
+
+Tab4:AddToggle({
+    Name = "⚪ Box ESP",
+    Default = false,
+    Callback = function(Value)
+        ESPEnabled = Value
+        if not ESPEnabled then
+            for _, player in pairs(Players:GetPlayers()) do
+                if player ~= LocalPlayer then
+                    local box = player:FindFirstChild("_Box")
+                    if box then
+                        box.Visible = false
+                    end
+                end
+            end
+        end
+    end
+})
+
+Tab4:AddToggle({
+    Name = "⚪ Use Team Colors",
+    Default = false,
+    Callback = function(Value)
+        UseTeamColor = Value
+        if ToggleTeamColors then
+            ToggleTeamColors(Value)
+        end
+    end
+})
+
+local function createBox(player)
+    local box = Drawing.new("Square")
+    box.Visible = false
+    box.Thickness = 1
+    box.Transparency = 1
+    box.Color = Color3.new(1, 0, 0)
+
+    local function update()
+        if not ESPEnabled then
+            box.Visible = false
+            return
+        end
+
+        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            local character = player.Character
+            local rootPart = character.HumanoidRootPart
+
+            if UseTeamColor and player.Team then
+                box.Color = player.Team.TeamColor.Color
+            else
+                box.Color = Color3.new(1, 0, 0)
+            end
+
+            local cframe, size = character:GetBoundingBox()
+
+            local adjustedHeight = math.clamp(size.Y, 4, 7)
+            local adjustedWidth = math.clamp(size.X, 2, 4)
+            
+            size = Vector3.new(adjustedWidth, adjustedHeight, size.Z)
+
+            local minScreenPos, maxScreenPos = Vector2.new(math.huge, math.huge), Vector2.new(-math.huge, -math.huge)
+            for _, corner in ipairs({
+                Vector3.new(-size.X / 2, size.Y / 2, -size.Z / 2),
+                Vector3.new(size.X / 2, size.Y / 2, -size.Z / 2),
+                Vector3.new(-size.X / 2, -size.Y / 2, -size.Z / 2),
+                Vector3.new(size.X / 2, -size.Y / 2, -size.Z / 2),
+                Vector3.new(-size.X / 2, size.Y / 2, size.Z / 2),
+                Vector3.new(size.X / 2, size.Y / 2, size.Z / 2),
+                Vector3.new(-size.X / 2, -size.Y / 2, size.Z / 2),
+                Vector3.new(size.X / 2, -size.Y / 2, size.Z / 2),
+            }) do
+                local worldPos = (cframe * corner)
+                local screenPos, onScreen = workspace.CurrentCamera:WorldToViewportPoint(worldPos)
+                if onScreen then
+                    minScreenPos = Vector2.new(
+                        math.min(minScreenPos.X, screenPos.X),
+                        math.min(minScreenPos.Y, screenPos.Y)
+                    )
+                    maxScreenPos = Vector2.new(
+                        math.max(maxScreenPos.X, screenPos.X),
+                        math.max(maxScreenPos.Y, screenPos.Y)
+                    )
+                else
+                    box.Visible = false
+                    return
+                end
+            end
+
+            box.Size = maxScreenPos - minScreenPos
+            box.Position = minScreenPos
+            box.Visible = true
+        else
+            box.Visible = false
+        end
+    end
+
+    local connection
+    connection = RunService.RenderStepped:Connect(update)
+
+    player.AncestryChanged:Connect(function()
+        if not player:IsDescendantOf(Players) then
+            connection:Disconnect()
+            box:Remove()
+        end
+    end)
+end
+
+for _, player in pairs(Players:GetPlayers()) do
+    if player ~= LocalPlayer then
+        createBox(player)
+    end
+end
+
+Players.PlayerAdded:Connect(function(player)
+    if player ~= LocalPlayer then
+        createBox(player)
+    end
+end)
+
+
+--------------------------------------------------------------------------------
+-- KODUN SONU
+--------------------------------------------------------------------------------
+-- 1) AIMBOT TAB VE SECTION
+--------------------------------------------------------------------------------
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local LocalPlayer = Players.LocalPlayer
+local AimFOV = 42
+local smoothing = 0.5  
+local maxTargetDistance = 500 
+local predictionFactor = 0.0575 
+local predictToggle = false
+local lockPart = "HumanoidRootPart" 
+local aimbotEnabled = false  
+local fovCircleEnabled = false  
+local fovColor = Color3.fromRGB(255, 255, 255)  
+
+local function removeMobileGui()
+    if aimbotGui then
+        aimbotGui:Destroy()
+        aimbotGui = nil
+        aimbotButton = nil
+    end
+end
+
+local function createMobileGui()
+    if aimbotGui then return fovCircleEnabled end
+
+    aimbotGui = Instance.new("ScreenGui")
+    aimbotGui.Name = "MobileAimbotGui"
+    aimbotGui.Parent = game.Players.LocalPlayer:FindFirstChild("PlayerGui")
+
+    aimbotButton = Instance.new("TextButton")
+    aimbotButton.Size = UDim2.new(0, 200, 0, 50)
+    aimbotButton.Position = UDim2.new(0.5, -100, 0.8, 0)
+    aimbotButton.Text = "Aimbot: OFF"
+    aimbotButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0) 
+    aimbotButton.TextColor3 = Color3.fromRGB(255, 255, 255) 
+    aimbotButton.Font = Enum.Font.SourceSans
+    aimbotButton.TextSize = 24
+    aimbotButton.Parent = aimbotGui
+
+    Instance.new("UICorner", aimbotButton)
+
+    aimbotButton.MouseButton1Click:Connect(function()
+        aimbotEnabled = not aimbotEnabled  -- Aimbot değişkenini değiştir
+
+        if aimbotEnabled then
+            aimbotButton.Text = "Aimbot: ON"
+            aimbotButton.BackgroundColor3 = Color3.fromRGB(0, 255, 0) 
+        else
+            aimbotButton.Text = "Aimbot: OFF"
+            aimbotButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0) 
+        end
+    end)
+
+    local dragging = false
+    local dragStart = nil
+    local startPos = nil
+
+    aimbotButton.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            dragStart = input.Position
+            startPos = aimbotButton.Position
+        end
+    end)
+
+    aimbotButton.InputChanged:Connect(function(input)
+        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local delta = input.Position - dragStart
+            aimbotButton.Position = UDim2.new(
+                startPos.X.Scale,
+                startPos.X.Offset + delta.X,
+                startPos.Y.Scale,
+                startPos.Y.Offset + delta.Y
+            )
+        end
+    end)
+
+    aimbotButton.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
+    end)
+
+end
+
+-- Function to add Wanted label
+local function addWantedLabel(player)
+    if player == LocalPlayer then return end
+    local character = player.Character
+    if not character then return end
+    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+    if not humanoidRootPart then return end
+    if humanoidRootPart:FindFirstChild("WantedGui") then return end
+
+    local billboardGui = Instance.new("BillboardGui")
+    billboardGui.Name = "WantedGui"
+    billboardGui.Size = UDim2.new(0, 100, 0, 50)
+    billboardGui.StudsOffset = Vector3.new(0, 3, 0)
+    billboardGui.Adornee = humanoidRootPart
+    billboardGui.AlwaysOnTop = true
+    billboardGui.Parent = humanoidRootPart
+
+    local textLabel = Instance.new("TextLabel")
+    textLabel.Size = UDim2.new(1, 0, 1, 0)
+    textLabel.BackgroundTransparency = 1
+    textLabel.Text = "WANTED"
+    textLabel.TextColor3 = Color3.fromRGB(255, 215, 0)
+    textLabel.TextScaled = false
+    textLabel.TextSize = 18
+    textLabel.Font = Enum.Font.ArialBold
+    textLabel.Parent = billboardGui
+
+    activeWantedLabels[player] = billboardGui
+end
+
+-- Function to remove Wanted label
+local function removeWantedLabel(player)
+    local character = player.Character
+    if not character then return end
+    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+    if not humanoidRootPart then return end
+    local gui = humanoidRootPart:FindFirstChild("WantedGui")
+    if gui then
+        gui:Destroy()
+    end
+    activeWantedLabels[player] = nil
+end
+
+-- Function to update all Wanted labels
+local function updateAllWantedLabels()
+    if not WantedESPEnabled then
+        for _, player in pairs(Players:GetPlayers()) do
+            removeWantedLabel(player)
+        end
+        return
+    end
+
+    for _, player in pairs(Players:GetPlayers()) do
+        local character = player.Character
+        local humanoidRootPart = character and character:FindFirstChild("HumanoidRootPart")
+        local isWanted = humanoidRootPart and humanoidRootPart:GetAttribute("IsWanted")
+        
+        if isWanted then
+            addWantedLabel(player)
+        else
+            removeWantedLabel(player)
+        end
+    end
+end
+
+-- Add Wanted ESP Toggle
+Tab4:AddToggle({
+    Name = "⚪ Crime ESP",
+    Default = false,
+    Callback = function(Value)
+        WantedESPEnabled = Value
+        if not WantedESPEnabled then
+            for _, player in pairs(Players:GetPlayers()) do
+                removeWantedLabel(player)
+            end
+        else
+            updateAllWantedLabels()
+        end
+    end
+})
+
+-- Start the update loop
+spawn(function()
+    while true do
+        if WantedESPEnabled then
+            updateAllWantedLabels()
+        end
+        wait(1)
+    end
+end)
+
+-- Handle character added events
+local function onCharacterAdded(player, character)
+    wait(1)
+    if WantedESPEnabled then
+        updateAllWantedLabels()
+    end
+end
+
+for _, player in pairs(Players:GetPlayers()) do
+    player.CharacterAdded:Connect(function(char)
+        onCharacterAdded(player, char)
+    end)
+end
+
+Players.PlayerAdded:Connect(function(player)
+    player.CharacterAdded:Connect(function(char)
+        onCharacterAdded(player, char)
+    end)
+end)
+
+
+local AimbotTab = Window:MakeTab({
+    Name = "🔴│Aimbot",
+    PremiumOnly = false
+})  
+ 
+local FOVring = Drawing.new("Circle")
+FOVring.Visible = false 
+FOVring.Thickness = 1
+FOVring.Radius = AimFOV
+FOVring.Transparency = 1
+FOVring.Color = fovColor
+FOVring.Position = workspace.CurrentCamera.ViewportSize / 2
+ 
+AimbotTab:AddToggle({
+    Name = "🔴 Aimbot",
+    Default = false,
+    Callback = function(value)
+        aimbotEnabled = value
+    end    
+})
+ 
+AimbotTab:AddBind({
+    Name = "🔴 Aimbot Keybind",
+    Default = Enum.KeyCode.V, 
+    Hold = false,
+    Callback = function()
+        aimbotEnabled = not aimbotEnabled 
+        FOVring.Visible = aimbotEnabled
+    end    
+})
+ 
+AimbotTab:AddDropdown({
+    Name = "🔴 Shot",
+    Default = "Head",  
+    Options = {"Head", "Body"},  
+    Callback = function(value)
+        lockPart = value == "Body" and "HumanoidRootPart" or value  
+    end
+})
+ 
+AimbotTab:AddToggle({
+    Name = "🔴 Prediction",
+    Default = true,
+    Callback = function(value)
+        predictToggle = value
+    end    
+})
+ 
+ 
+AimbotTab:AddSlider({
+    Name = "🔴 Smoothness",
+    Min = 1,
+    Max = 10,
+    Default = 2,
+    Increment = 1,
+    Color = Color3.fromRGB(191, 42, 42),
+    ValueName = "",
+    Callback = function(value)
+        smoothing = (10 - value) / 10  -- Kaydırıcıdaki değeri tersine çevir
+    end
+})
+ 
+ 
+ 
+local function isWithinDistance(targetPart)
+    local distance = (workspace.CurrentCamera.CFrame.Position - targetPart.Position).Magnitude
+    return distance <= maxTargetDistance
+end
+ 
+local function getClosest()
+    local target = nil
+    local shortestDistance = math.huge
+    local screenCenter = workspace.CurrentCamera.ViewportSize / 2
+ 
+    for _, v in pairs(Players:GetPlayers()) do
+        if v ~= LocalPlayer and v.Character and v.Character:FindFirstChild(lockPart) then
+            local targetPart = v.Character[lockPart]
+            local screenPoint, onScreen = workspace.CurrentCamera:WorldToViewportPoint(targetPart.Position)
+            local distanceFromCenter = (Vector2.new(screenPoint.X, screenPoint.Y) - screenCenter).Magnitude
+ 
+            if onScreen and distanceFromCenter <= AimFOV and distanceFromCenter < shortestDistance then
+                shortestDistance = distanceFromCenter
+                target = v
+            end
+        end
+    end
+    return target
+end
+ 
+local function predictPosition(target)
+    if target and target.Character and target.Character:FindFirstChild(lockPart) then
+        local velocity = target.Character[lockPart].Velocity
+        local position = target.Character[lockPart].Position
+        return predictToggle and (position + (velocity * predictionFactor)) or position
+    end
+    return nil
+end
+ 
+RunService.RenderStepped:Connect(function()
+    if aimbotEnabled then
+        FOVring.Position = workspace.CurrentCamera.ViewportSize / 2
+        FOVring.Visible = fovCircleEnabled
+ 
+        if UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton2) then
+            local currentTarget = getClosest()
+            if currentTarget and currentTarget.Character and currentTarget.Character:FindFirstChild(lockPart) then
+                local predictedPosition = predictPosition(currentTarget)
+                if predictedPosition then
+                    workspace.CurrentCamera.CFrame = workspace.CurrentCamera.CFrame:Lerp(CFrame.new(workspace.CurrentCamera.CFrame.Position, predictedPosition), smoothing)
+                end
+            end
+        end
+    end
+end)
+
+local Tab = Window:MakeTab({
+    Name = "👮🏿│Police",
+    PremiumOnly = false
+})
+
+--[[
+Name = <string> - The name of the tab.
+Icon = <string> - The icon of the tab.
+PremiumOnly = <bool> - Makes the tab accessible to Sirus Premium users only.
+]]
+
+
+Tab:AddParagraph("RadarFarm","You can make with it big money no ban chance")
+
+
+local rs = game:GetService("ReplicatedStorage")
+local char = game.Players.LocalPlayer.Character or game.Players.LocalPlayer.CharacterAdded:Wait()
+local hrp = char:WaitForChild("HumanoidRootPart")
+
+_G.RadarFarmEnabled = false
+
+local function startRadarFarm()
+  local remote = rs.Bnl:FindFirstChild("bbb7c252-304d-4582-b2a0-89eb9d3a0855")
+  if not remote then
+    print("wda")
+    return
+  end
+
+  _G.RadarFarmEnabled = true
+  print("Radar Farm startet")
+
+  while _G.RadarFarmEnabled do
+    local radarGun = char:FindFirstChild("Radar Gun")
+
+    if radarGun then
+      for _, vehicle in ipairs(workspace.Vehicles:GetChildren()) do
+        local driveSeat = vehicle:FindFirstChild("DriveSeat")
+
+        if driveSeat and driveSeat.Occupant then
+          local direction = (driveSeat.Position - hrp.Position).Unit
+          pcall(function()
+            remote:FireServer(radarGun, driveSeat.Position, direction)
+          end)
+        end
+      end
+    else
+      print("Radar gun not found")
+    end
+
+    task.wait(1)
+  end
+end
+
+local function stopRadarFarm()
+  _G.RadarFarmEnabled = false
+  print("RadarStop")
+end
+
+
+
+Tab:AddToggle({
+  Name = "🟤 RadarFarm",
+  Default = false,
+  Callback = function(Value)
+    if Value then
+      -- Update character reference
+      char = game.Players.LocalPlayer.Character or game.Players.LocalPlayer.CharacterAdded:Wait()
+      hrp = char:WaitForChild("HumanoidRootPart")
+      spawn(startRadarFarm)
+    else
+      stopRadarFarm()
+    end
+  end
+})
+
+-- Variables for anti-AFK functionality
+local antiAfkEnabled = false
+local bb = game:GetService('VirtualUser')
+local player = game:GetService('Players').LocalPlayer
+
+-- Anti-AFK function
+local function enableAntiAfk()
+    player.Idled:Connect(function()
+        if antiAfkEnabled then
+            bb:CaptureController()
+            bb:ClickButton2(Vector2.new())
+            print("Roblox tried kicking you, but I didn't let them!")
+        end
+    end)
+end
+
+-- Toggle for Anti-AFK
+Tab:AddToggle({
+    Name = "🟤 Anti-AFK",
+    Default = false,
+    Callback = function(Value)
+        antiAfkEnabled = Value
+        if antiAfkEnabled then
+            enableAntiAfk()
+            print("Anti-AFK is now enabled.")
+        else
+            print("Anti-AFK is now disabled.")
+        end
+    end
+})
+
+
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+local player = game.Players.LocalPlayer
+
+local flightSpeed = 190 -- Langsamer machen (z. B. 20 statt 60)
+
+Tab:AddDropdown({
+    Name = "🟤 💎│Teleports",
+    Default = "1",
+    Options = {"Police", "Farming Places",},
+    Callback = function(Value)
+        local locations = {
+            ["Police"] = CFrame.new(-1670.691528, 5.99, 2771.11),
+            ["Farming Places"] = CFrame.new(-1148.454346, 9.49, 2805.56),
+        }
+
+        local targetCFrame = locations[Value]
+        if not targetCFrame then return end
+
+        local vehicle = workspace:FindFirstChild("Vehicles") and workspace.Vehicles:FindFirstChild(player.Name)
+        if not vehicle or not vehicle:IsA("Model") then return end
+
+        frameTween(targetCFrame)
+    end
+})
+
+local Tab = Window:MakeTab({
+    Name = "💜│Selv Revive",
+    PremiumOnly = false
+})
+
+Tab:AddParagraph("Please wait 1m and you will be healed (OP)", "")
+
+Tab:AddButton({
+    Name = "Aktiviere Self-Revive",
+    Callback = function()
+        -- Sicherheits-Check (nur Emergency Hamburg)
+        if game.PlaceId ~= 7711635737 then
+            OrionLib:MakeNotification({
+                Name = "Fehler",
+                Content = "Dieses Script funktioniert nur in Emergency Hamburg (7711635737).",
+                Time = 4
+            })
+            return
+        end
+
+        -- Services
+        local Players = game:GetService("Players")
+        local TweenService = game:GetService("TweenService")
+        local Workspace = game:GetService("Workspace")
+
+        local LocalPlayer = Players.LocalPlayer
+
+        -- State
+        local autoReviveEnabled = true
+        local healthConnection = nil
+
+        -- Tween-Teleport Funktion (robust)
+        local function tweenTo(destination)
+            local VehiclesFolder = Workspace:FindFirstChild("Vehicles")
+            local car = VehiclesFolder and VehiclesFolder:FindFirstChild(LocalPlayer.Name)
+            if not car then return false end
+
+            car.PrimaryPart = car:FindFirstChild("DriveSeat", true) or car.PrimaryPart
+            if car.DriveSeat and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+                pcall(function() car.DriveSeat:Sit(LocalPlayer.Character.Humanoid) end)
+            end
+
+            if typeof(destination) == "CFrame" then
+                destination = destination.Position
+            end
+
+            local function moveTo(targetPosition)
+                if not car.PrimaryPart then return end
+                local distance = (car.PrimaryPart.Position - targetPosition).Magnitude
+                local tweenDuration = math.clamp(distance / 175, 0.05, 20)
+                local tweenInfo = TweenInfo.new(tweenDuration, Enum.EasingStyle.Linear, Enum.EasingDirection.Out)
+
+                local value = Instance.new("CFrameValue")
+                value.Value = car:GetPivot()
+
+                local con
+                con = value.Changed:Connect(function(newCFrame)
+                    if car and car.Parent then
+                        car:PivotTo(newCFrame)
+                        if car:FindFirstChild("DriveSeat") then
+                            pcall(function()
+                                car.DriveSeat.AssemblyLinearVelocity = Vector3.zero
+                                car.DriveSeat.AssemblyAngularVelocity = Vector3.zero
+                            end)
+                        end
+                    else
+                        if con then con:Disconnect() end
+                    end
+                end)
+
+                local success, err = pcall(function()
+                    local tween = TweenService:Create(value, tweenInfo, { Value = CFrame.new(targetPosition) })
+                    tween:Play()
+                    tween.Completed:Wait()
+                end)
+
+                if con then con:Disconnect() end
+                value:Destroy()
+                if not success then
+                    warn("tweenTo moveTo error:", err)
+                end
+            end
+
+            -- sanfte Start-/Landing-Bewegungen
+            pcall(function() moveTo(car.PrimaryPart.Position + Vector3.new(0, -4, 0)) end)
+            pcall(function() moveTo(destination + Vector3.new(0, -4, 0)) end)
+            pcall(function() moveTo(destination) end)
+            return true
+        end
+
+        -- Auto-Heilung & Rückkehr
+        local function autoHealAndReturn(originalPosition)
+            local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+            local humanoid = char:FindFirstChild("Humanoid")
+            if not humanoid then return false end
+
+            local bed = Workspace:FindFirstChild("Buildings")
+                and Workspace.Buildings:FindFirstChild("Hospital")
+                and Workspace.Buildings.Hospital:FindFirstChild("HospitalBed")
+                and Workspace.Buildings.Hospital.HospitalBed:FindFirstChild("Seat")
+
+            if not bed then
+                OrionLib:MakeNotification({
+                    Name = "Self-Revive Fehler",
+                    Content = "HospitalBed nicht gefunden (Error 404)",
+                    Time = 4
+                })
+                return false
+            end
+
+            -- Aus Fahrzeug aussteigen wenn nötig
+            if humanoid.Sit then
+                humanoid.Sit = false
+                humanoid.Jump = true
+                task.wait(0.12)
+            end
+
+            -- Zum Bett teleportieren (sanft)
+            if char:FindFirstChild("HumanoidRootPart") then
+                local hrp = char.HumanoidRootPart
+                hrp.CFrame = bed.CFrame * CFrame.new(0, 3, 0)
+                task.wait(0.18)
+                pcall(function()
+                    hrp.AssemblyLinearVelocity = Vector3.zero
+                    hrp.AssemblyAngularVelocity = Vector3.zero
+                end)
+                hrp.CFrame = bed.CFrame * CFrame.new(0, 0.5, 0)
+                task.wait(0.12)
+            end
+
+            -- Versuche zu sitzen
+            local attempts = 0
+            while not humanoid.Sit and attempts < 6 do
+                pcall(function() bed:Sit(humanoid) end)
+                attempts = attempts + 1
+                task.wait(0.22)
+            end
+
+            -- Warte bis genug geheilt
+            repeat task.wait(0.2) until humanoid.Health >= humanoid.MaxHealth * 0.27
+
+            -- Aufstehen
+            humanoid.Sit = false
+            humanoid.Jump = true
+            task.wait(0.2)
+
+            -- Zurück zum Auto und weiterfahren
+            local car = Workspace:FindFirstChild("Vehicles") and Workspace.Vehicles:FindFirstChild(LocalPlayer.Name)
+            if car and char:FindFirstChild("HumanoidRootPart") and car:FindFirstChild("DriveSeat") then
+                char.HumanoidRootPart.CFrame = car.DriveSeat.CFrame * CFrame.new(0, 2, 0)
+                pcall(function() car.DriveSeat:Sit(humanoid) end)
+                task.wait(0.12)
+                pcall(function() tweenTo(originalPosition) end)
+            end
+
+            return true
+        end
+
+        -- Hauptcheck
+        local function checkHealthAndTeleport()
+            local car = Workspace:FindFirstChild("Vehicles") and Workspace.Vehicles:FindFirstChild(LocalPlayer.Name)
+            if not car then
+                OrionLib:MakeNotification({
+                    Name = "Self-Revive",
+                    Content = "Kein Fahrzeug gefunden.",
+                    Time = 3
+                })
+                return
+            end
+
+            local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+            local humanoid = char:FindFirstChild("Humanoid")
+            if not humanoid then return end
+
+            local success, originalPos = pcall(function() return car:GetPivot().Position end)
+            if not success or not originalPos then return end
+
+            local hospital = CFrame.new(-120.30, 5.61, 1077.29)
+
+            if humanoid.Health <= humanoid.MaxHealth * 0.27 then
+                if tweenTo(hospital) then
+                    task.wait(1.8)
+                    autoHealAndReturn(originalPos)
+                end
+            else
+                OrionLib:MakeNotification({
+                    Name = "Self-Revive",
+                    Content = "Du bist nicht verletzt – keine Aktion nötig",
+                    Time = 3
+                })
+            end
+        end
+
+        -- Aktivierungslogik (setzt Connection)
+        local function enableAutoRevive(val)
+            autoReviveEnabled = val
+            if val then
+                local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+                local humanoid = char:WaitForChild("Humanoid")
+                if healthConnection then
+                    pcall(function() healthConnection:Disconnect() end)
+                    healthConnection = nil
+                end
+                healthConnection = humanoid.HealthChanged:Connect(function(hp)
+                    if autoReviveEnabled and hp <= humanoid.MaxHealth * 0.27 then
+                        pcall(function() checkHealthAndTeleport() end)
+                    end
+                end)
+            else
+                if healthConnection then
+                    pcall(function() healthConnection:Disconnect() end)
+                    healthConnection = nil
+                end
+            end
+        end
+
+        -- Respawn Reattach
+        LocalPlayer.CharacterAdded:Connect(function(char)
+            if autoReviveEnabled then
+                char:WaitForChild("Humanoid").HealthChanged:Connect(function(hp)
+                    if hp <= char.Humanoid.MaxHealth * 0.27 then
+                        pcall(function() checkHealthAndTeleport() end)
+                    end
+                end)
+            end
+        end)
+
+        -- Starte Auto-Revive
+        enableAutoRevive(true)
+
+        OrionLib:MakeNotification({
+            Name = "Self-Revive aktiviert",
+            Content = "Auto-Revive läuft jetzt (vorsichtig verwenden).",
+            Time = 5
+        })
+    end
+})
+
+
+-- GUI starten
+OrionLib:Init()
