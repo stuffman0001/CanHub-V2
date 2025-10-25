@@ -1,16 +1,16 @@
+
 local function loadSettings()
 	if game:GetService("RunService"):IsStudio() then
 		return "STUDIO"
 	end
-
+	
 	if isfile("CanHub/CanHub.json") then
 		local settingsData = readfile(SETTINGS_PATH)
-		return HttpService:JSONDecode(settingsData)
+		return game:GetService("HttpService"):JSONDecode(settingsData)
 	else
 		return nil
 	end
 end
-
 local SETTINGS = loadSettings() or {
 	general = {
 		Print = true,
@@ -21,10 +21,7 @@ local SETTINGS = loadSettings() or {
 		Bypassers = true,
 		UncTests = true,
 	}
-}
-warn("ran debug")
-warn("SETTINGS")
+}	
 if SETTINGS.safety.Bypassers == true then
-warn("running adonis bypass")
     loadstring(game:HttpGet("https://raw.githubusercontent.com/stuffman0001/CanHub-V2/refs/heads/main/Loader/Tests/Adonis%20Bypass.lua"))()
-end)
+end
