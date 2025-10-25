@@ -22,7 +22,9 @@ local SETTINGS = loadSettings() or {
 		UncTests = true,
 	}
 }
-
+warn("ran debug")
+warn("SETTINGS")
 if SETTINGS.safety.Bypassers == true then
+warn("running adonis bypass")
     loadstring(game:HttpGet("https://raw.githubusercontent.com/stuffman0001/CanHub-V2/refs/heads/main/Loader/Tests/Adonis%20Bypass.lua"))()
 end)
