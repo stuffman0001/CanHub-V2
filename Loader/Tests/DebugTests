@@ -5,7 +5,7 @@ local function loadSettings()
 	end
 	
 	if isfile("CanHub/CanHub.json") then
-		local settingsData = readfile(SETTINGS_PATH)
+		local settingsData = readfile("CanHub/CanHub.json")
 		return game:GetService("HttpService"):JSONDecode(settingsData)
 	else
 		return nil
