@@ -11,20 +11,17 @@ local function loadSettings()
 	end
 end
 
-local RESULT = loadSettings()
+local SETTINGS = loadSettings() or {
+	general = {
+		Print = true,
+		SendNotifications = true,
+		AutoInject = true,
+	},
+	safety = {
+		Bypassers = true,
+		RiskyFunctions = false,
+	}
 
-if RESULT == nil then
-loadstring(game:HttpGet("https://raw.githubusercontent.com/stuffman0001/CanHub-V2/refs/heads/main/Loader/Tests/Adonis%20Bypass.lua"))()
-    return
-end
-
-if RESULT == "STUDIO" then
-    return
-end
-
-if type(RESULT) == "table" then
-    local safety = RESULT.safety
-    if safety and safety.Bypassers == true then
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/stuffman0001/CanHub-V2/refs/heads/main/Loader/Tests/Adonis%20Bypass.lua"))()
-    end
-end
+if SETTINGS.safety.Bypassers == true then
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/stuffman0001/CanHub-V2/refs/heads/main/Loader/Tests/Adonis%20Bypass.lua"))()
+end)
