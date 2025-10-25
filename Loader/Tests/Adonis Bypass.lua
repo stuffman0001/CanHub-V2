@@ -39,7 +39,7 @@ spawn(function()
     end
 
     if not AdonisFound then
-        --Notify("Adonis Bypasser", "Adonis not found. Bypass skipped.", 3)
+        Notify("Adonis Bypasser", "Adonis not found. Bypass skipped.", 3)
         return
     end
 
