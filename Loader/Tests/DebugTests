@@ -19,7 +19,7 @@ local SETTINGS = loadSettings() or {
 	},
 	safety = {
 		Bypassers = true,
-		UncTests = false,
+		UncTests = true,
 	}
 }
 
