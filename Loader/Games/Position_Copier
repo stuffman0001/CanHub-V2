@@ -1,0 +1,201 @@
+if game:GetService("CoreGui"):FindFirstChild("Position_Copier") then
+	game:GetService("CoreGui"):FindFirstChild("Position_Copier"):Destroy()
+end
+
+-- Instances:
+
+local Converted = {
+	["_Position_Copier"] = Instance.new("ScreenGui");
+	["_Main"] = Instance.new("Frame");
+	["_Labels"] = Instance.new("Folder");
+	["_Title"] = Instance.new("TextLabel");
+	["_UICorner"] = Instance.new("UICorner");
+	["_Credit"] = Instance.new("TextLabel");
+	["_UICorner1"] = Instance.new("UICorner");
+	["_Position_Copier1"] = Instance.new("Folder");
+	["_Copy"] = Instance.new("TextButton");
+	["_UICorner2"] = Instance.new("UICorner");
+	["_Position"] = Instance.new("TextLabel");
+	["_UICorner3"] = Instance.new("UICorner");
+	["_Generate"] = Instance.new("TextButton");
+	["_UICorner4"] = Instance.new("UICorner");
+	["_UICorner5"] = Instance.new("UICorner");
+	["_UIStroke"] = Instance.new("UIStroke");
+}
+
+-- Properties:
+
+Converted["_Position_Copier"].ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+Converted["_Position_Copier"].Name = "Position_Copier"
+Converted["_Position_Copier"].Parent = game:GetService("CoreGui")
+
+Converted["_Main"].BackgroundColor3 = Color3.fromRGB(105.00000894069672, 105.00000894069672, 105.00000894069672)
+Converted["_Main"].BorderColor3 = Color3.fromRGB(27.000002190470695, 42.000001296401024, 53.000004440546036)
+Converted["_Main"].Position = UDim2.new(0.3881163, 0, 0.401730567, 0)
+Converted["_Main"].Size = UDim2.new(0, 196, 0, 158)
+Converted["_Main"].Name = "Main"
+Converted["_Main"].Parent = Converted["_Position_Copier"]
+
+Converted["_Labels"].Name = "Labels"
+Converted["_Labels"].Parent = Converted["_Main"]
+
+Converted["_Title"].Font = Enum.Font.RobotoMono
+Converted["_Title"].RichText = true
+Converted["_Title"].Text = "Position Copier And Teleport Script Generator"
+Converted["_Title"].TextColor3 = Color3.fromRGB(0, 0, 0)
+Converted["_Title"].TextScaled = true
+Converted["_Title"].TextSize = 14
+Converted["_Title"].TextWrapped = true
+Converted["_Title"].BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+Converted["_Title"].BorderColor3 = Color3.fromRGB(27.000002190470695, 42.000001296401024, 53.000004440546036)
+Converted["_Title"].Position = UDim2.new(0.205357149, 0, 0.0632911399, 0)
+Converted["_Title"].Size = UDim2.new(0, 113, 0, 33)
+Converted["_Title"].Name = "Title"
+Converted["_Title"].Parent = Converted["_Labels"]
+
+Converted["_UICorner"].Parent = Converted["_Title"]
+
+Converted["_Credit"].Font = Enum.Font.RobotoMono
+Converted["_Credit"].RichText = true
+Converted["_Credit"].Text = "Credit: stuffman0"
+Converted["_Credit"].TextColor3 = Color3.fromRGB(0, 0, 0)
+Converted["_Credit"].TextSize = 14
+Converted["_Credit"].TextWrapped = true
+Converted["_Credit"].BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+Converted["_Credit"].BackgroundTransparency = 1
+Converted["_Credit"].BorderColor3 = Color3.fromRGB(27.000002190470695, 42.000001296401024, 53.000004440546036)
+Converted["_Credit"].Position = UDim2.new(-0.233418375, 0, -0.278481007, 0)
+Converted["_Credit"].Size = UDim2.new(0, 285, 0, 38)
+Converted["_Credit"].Name = "Credit"
+Converted["_Credit"].Parent = Converted["_Labels"]
+
+Converted["_UICorner1"].Parent = Converted["_Credit"]
+
+Converted["_Position_Copier1"].Name = "Position_Copier"
+Converted["_Position_Copier1"].Parent = Converted["_Main"]
+
+Converted["_Copy"].Font = Enum.Font.SourceSans
+Converted["_Copy"].Text = "Copy"
+Converted["_Copy"].TextColor3 = Color3.fromRGB(0, 0, 0)
+Converted["_Copy"].TextSize = 14
+Converted["_Copy"].BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+Converted["_Copy"].BorderColor3 = Color3.fromRGB(27.000002190470695, 42.000001296401024, 53.000004440546036)
+Converted["_Copy"].Position = UDim2.new(0.336038858, 0, 0.602210522, 0)
+Converted["_Copy"].Size = UDim2.new(0, 63, 0, 19)
+Converted["_Copy"].Name = "Copy"
+Converted["_Copy"].Parent = Converted["_Position_Copier1"]
+
+Converted["_UICorner2"].Parent = Converted["_Copy"]
+
+Converted["_Position"].Font = Enum.Font.SourceSans
+Converted["_Position"].Text = "N/A"
+Converted["_Position"].TextColor3 = Color3.fromRGB(0, 0, 0)
+Converted["_Position"].TextScaled = true
+Converted["_Position"].TextSize = 14
+Converted["_Position"].TextWrapped = true
+Converted["_Position"].BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+Converted["_Position"].BorderColor3 = Color3.fromRGB(27.000002190470695, 42.000001296401024, 53.000004440546036)
+Converted["_Position"].Position = UDim2.new(0.0949675143, 0, 0.343472451, 0)
+Converted["_Position"].Size = UDim2.new(0, 162, 0, 31)
+Converted["_Position"].Name = "Position"
+Converted["_Position"].Parent = Converted["_Position_Copier1"]
+
+Converted["_UICorner3"].Parent = Converted["_Position"]
+
+Converted["_Generate"].Font = Enum.Font.SourceSans
+Converted["_Generate"].Text = "Generate"
+Converted["_Generate"].TextColor3 = Color3.fromRGB(0, 0, 0)
+Converted["_Generate"].TextSize = 14
+Converted["_Generate"].BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+Converted["_Generate"].BorderColor3 = Color3.fromRGB(27.000002190470695, 42.000001296401024, 53.000004440546036)
+Converted["_Generate"].Position = UDim2.new(0.336038858, 0, 0.766767502, 0)
+Converted["_Generate"].Size = UDim2.new(0, 63, 0, 19)
+Converted["_Generate"].Name = "Generate"
+Converted["_Generate"].Parent = Converted["_Position_Copier1"]
+
+Converted["_UICorner4"].Parent = Converted["_Generate"]
+
+Converted["_UICorner5"].BottomLeftRadius = UDim.new(0, 50)
+Converted["_UICorner5"].BottomRightRadius = UDim.new(0, 50)
+Converted["_UICorner5"].CornerRadius = UDim.new(0, 50)
+Converted["_UICorner5"].TopLeftRadius = UDim.new(0, 50)
+Converted["_UICorner5"].TopRightRadius = UDim.new(0, 50)
+Converted["_UICorner5"].Parent = Converted["_Main"]
+
+Converted["_UIStroke"].Color = Color3.fromRGB(4.000000236555934, 4.000000236555934, 4.000000236555934)
+Converted["_UIStroke"].Thickness = 5
+Converted["_UIStroke"].Parent = Converted["_Main"]
+
+local function Notification(Title, Text, Duration)
+	game.StarterGui:SetCore("SendNotification", {
+		Title = Title,
+		Text = Text,
+		Duration = Duration
+	})
+end
+
+local function updateInput(input)
+	local Delta = input.Position - dragStart
+	local Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + Delta.X, startPos.Y.Scale, startPos.Y.Offset + Delta.Y)
+	game:GetService("TweenService"):Create(game:GetService("CoreGui").Position_Copier.Main, TweenInfo.new(.25), {Position = Position}):Play()
+end
+
+game:GetService("CoreGui").Position_Copier.Main.InputBegan:Connect(function(input)
+	if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
+		dragToggle = true
+		dragStart = input.Position
+		startPos = game:GetService("CoreGui").Position_Copier.Main.Position
+		input.Changed:Connect(function()
+			if (input.UserInputState == Enum.UserInputState.End) then
+				dragToggle = false
+			end
+		end)
+	end
+end)
+
+game:GetService("CoreGui").Position_Copier.Main.InputChanged:Connect(function(input)
+	if (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+		dragInput = input
+	end
+end)
+
+game:GetService("UserInputService").InputChanged:Connect(function(input)
+	if (input == dragInput and dragToggle) then
+		updateInput(input)
+	end
+end)
+
+
+game:GetService("RunService").RenderStepped:Connect(function()
+	local position = game.Players.LocalPlayer.Character and
+		game.Players.LocalPlayer.Character.HumanoidRootPart and
+		game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame
+	if position then
+		local roundedPosition = Vector3.new(math.floor(position.X), math.floor(position.Y), math.floor(position.Z))
+		game:GetService("CoreGui").Position_Copier.Main.Position_Copier.Position.Text	= tostring(roundedPosition)
+	end
+end)
+
+game:GetService("CoreGui").Position_Copier.Main.Position_Copier.Copy.MouseButton1Click:Connect(function()
+	local position = game.Players.LocalPlayer.Character and
+		game.Players.LocalPlayer.Character.HumanoidRootPart and
+		game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame
+	if position then
+		local roundedPosition = Vector3.new(math.floor(position.X), math.floor(position.Y), math.floor(position.Z))
+		setclipboard(tostring(roundedPosition))
+		Notification("Copied:", tostring(roundedPosition), 5)
+	end
+end)
+
+
+game:GetService("CoreGui").Position_Copier.Main.Position_Copier.Generate.MouseButton1Click:Connect(function()
+	local position = game.Players.LocalPlayer.Character and
+		game.Players.LocalPlayer.Character.HumanoidRootPart and
+		game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame
+	if position then
+		local roundedPosition = Vector3.new(math.floor(position.X), math.floor(position.Y), math.floor(position.Z))
+		setclipboard("game.Players.LocalPlayer.Character:MoveTo(Vector3.new("..tostring(roundedPosition).."))")
+		Notification("Copied:", "Teleport Script", 5)
+	end
+end)
+
