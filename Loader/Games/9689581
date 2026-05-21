@@ -1,0 +1,144 @@
+--[[
+	WARNING: Heads up! This script has not been verified by ScriptBlox. Use at your own risk!
+]]
+getgenv().ColorPicked = Color3.fromRGB(255,255,255)
+local playerData = game:GetService("ReplicatedStorage").PlayerData
+local localUserID = game.Players.LocalPlayer.UserId
+local localData = playerData:FindFirstChild(localUserID)
+local localGamePasses = localData:FindFirstChild("GamePasses")
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+local skateboard = game.Players.LocalPlayer.Backpack.Skateboard or game.Players.LocalPlayer.Character.Skateboard
+
+local Window = Rayfield:CreateWindow({
+    Name = "Roblox Hack School",
+    Icon = 0,
+    LoadingTitle = "Roblox Hack School",
+    LoadingSubtitle = "White Cat was here :3",
+    ShowText = "ugly ahh mobile user",
+    Theme = "Ocean",
+    ToggleUIKeybind = "G",
+    DisableRayfieldPrompts = true,
+    DisableBuildWarnings = true,  
+})
+local Tab = Window:CreateTab("Main", 4483362458)
+local ColorPicker = Tab:CreateColorPicker({
+    Name = "Chat Color",
+    Color = Color3.fromRGB(255,255,255),
+    Flag = "ColorPicker1", 
+    Callback = function(Value)
+        getgenv().ColorPicked = Value
+    end
+})
+local Button = Tab:CreateButton({
+   Name = "Apply Chat Color",
+   Callback = function()
+local args = {
+	"2",
+	getgenv().ColorPicked
+}
+game:GetService("ReplicatedStorage"):WaitForChild("RemoteFunctions"):WaitForChild("NameColorChange"):InvokeServer(unpack(args))
+
+   end,
+})
+local Button = Tab:CreateButton({
+   Name = "Make Skateboard Super Fast",
+   Callback = function()
+    print(skateboard:SetAttribute("TopSpeed", 999))
+    Rayfield:Notify({
+   Title = "Success",
+   Content = "Re-equip the Skateboard!",
+   Duration = 6.5,
+   Image = 4483362458,
+})
+   end,
+})
+local Button = Tab:CreateButton({
+   Name = "Reset Skateboard Speed",
+   Callback = function()
+    print(skateboard:SetAttribute("TopSpeed", 45))
+        Rayfield:Notify({
+   Title = "Success",
+   Content = "Re-equip the Skateboard!",
+   Duration = 6.5,
+   Image = 4483362458,
+})
+   end,
+})
+local Button = Tab:CreateButton({
+   Name = "Disable Skateboard Wheels Collision",
+   Callback = function()
+    for i, v in pairs(skateboard.Model:GetChildren()) do
+        if v:FindFirstChild("Wheel") then
+            v.Wheel.CanCollide = false
+        end
+    end
+   end,
+})
+local Button = Tab:CreateButton({
+   Name = "Enable Skateboard Wheels Collision",
+   Callback = function()
+    for i, v in pairs(skateboard.Model:GetChildren()) do
+        if v:FindFirstChild("Wheel") then
+            v.Wheel.CanCollide = true
+        end
+    end
+   end,
+})
+
+local Toggle = Tab:CreateToggle({
+   Name = "Fan Club (allows to use phone)",
+   CurrentValue = localData.IsInFanClub.Value,
+   Flag = "Toggle1", 
+   Callback = function(Value)
+    localData.IsInFanClub.Value = Value
+   end,
+})
+local Tab = Window:CreateTab("Gamepasses (NOT FE)", 4483362458)
+local Toggle = Tab:CreateToggle({
+   Name = "Club Red",
+   CurrentValue = localGamePasses.ClubRed.Value,
+   Flag = "Toggle1", 
+   Callback = function(Value)
+    localGamePasses.ClubRed.Value = Value
+   end,
+})
+local Toggle = Tab:CreateToggle({
+   Name = "Double Cash",
+   CurrentValue = localGamePasses.DoubleCash.Value,
+   Flag = "Toggle1", 
+   Callback = function(Value)
+    localGamePasses.DoubleCash.Value = Value
+   end,
+})
+local Toggle = Tab:CreateToggle({
+   Name = "Drivers Liscense",
+   CurrentValue = localGamePasses.DriversLicense.Value,
+   Flag = "Toggle1", 
+   Callback = function(Value)
+    localGamePasses.DriversLicense.Value = Value
+   end,
+})
+local Toggle = Tab:CreateToggle({
+   Name = "Enforcers Powers",
+   CurrentValue = localGamePasses.EnforcersPowers.Value,
+   Flag = "Toggle1", 
+   Callback = function(Value)
+    localGamePasses.EnforcersPowers.Value = Value
+   end,
+})
+local Toggle = Tab:CreateToggle({
+   Name = "Unrestricted DJ",
+   CurrentValue = localGamePasses.UnrestrictedDJ.Value,
+   Flag = "Toggle1", 
+   Callback = function(Value)
+    localGamePasses.UnrestrictedDJ.Value = Value
+   end,
+})
+local Toggle = Tab:CreateToggle({
+   Name = "VIP",
+   CurrentValue = localGamePasses.VIP.Value,
+   Flag = "Toggle1", 
+   Callback = function(Value)
+    localGamePasses.VIP.Value = Value
+   end,
+})
