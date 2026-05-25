@@ -1,0 +1,3204 @@
+--[[
+	WARNING: Heads up! This script has not been verified by ScriptBlox. Use at your own risk!
+]]
+-- CRACKED BY WHODOTRU & FAKEANGLES
+-- LITVIN SOSAL
+
+_G.Status = "Ready!"
+wait(2)
+local getinfo = getinfo or debug.getinfo
+local DEBUG = false
+local Hooked = {}
+
+local Detected, Kill
+
+setthreadidentity(2)
+
+for i, v in pairs(getgc(true)) do
+    if typeof(v) == "table" then
+        local DetectFunc = rawget(v, "Detected")
+        local KillFunc = rawget(v, "Kill")
+
+        if typeof(DetectFunc) == "function" and not Detected then
+            Detected = DetectFunc
+
+            local Old; Old = hookfunction(DetectFunc, function(Action, Info, NoCrash)
+                if Action ~= "_" then
+                    if DEBUG then
+                        warn(`Adonis AntiCheat flagged\nMethod: {Action}\nInfo: {Info}`)
+                    end
+                end
+                return true
+            end)
+
+            table.insert(Hooked, DetectFunc)
+        end
+
+        if rawget(v, "Variables") and rawget(v, "Process") and typeof(KillFunc) == "function" and not Kill then
+            Kill = KillFunc
+            local Old; Old = hookfunction(KillFunc, function(Info)
+                if DEBUG then
+                    warn(`Adonis AntiCheat tried to kill (fallback): {Info}`)
+                end
+                return nil
+            end)
+
+            table.insert(Hooked, KillFunc)
+        end
+    end
+end
+
+local Old; Old = hookfunction(getrenv().debug.info, newcclosure(function(...)
+    local LevelOrFunc, Info = ...
+
+    if Detected and LevelOrFunc == Detected then
+        if DEBUG then
+            warn(`zins | adonis bypassed`)
+        end
+        return coroutine.yield()
+    end
+
+    return Old(...)
+end))
+
+setthreadidentity(7)
+
+
+wait(2)
+
+
+
+
+
+
+local UILibrary = loadstring(game:HttpGet("https://raw.githubusercontent.com/razedZ/UI/refs/heads/main/UI"))()
+
+local ui = UILibrary.new({
+    Info = "TownV1.3",
+    discordURL = "https://discord.gg/example",
+    FileName = "Town.lua"
+})
+
+-- SKEBOB NAVALNIY BYPASS
+
+wait(1)
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local Workspace = game:GetService("Workspace")
+local GuiService = game:GetService("GuiService")
+
+local player = Players.LocalPlayer
+local Camera = Workspace.CurrentCamera
+
+--
+-- AIMBOT SYSTEM
+--
+local Aimbot = {
+    Enabled = false,
+    ShowFOV = false,
+    FieldOfView = 60,
+    Smoothness = 0,
+    TargetPart = "Head",
+    UseFOVLimit = true,
+    PlayerExceptions = {}
+}
+
+--
+-- SILENT AIM SYSTEM
+--
+getgenv().ForceMouseUnlock = true
+getgenv().SilentAim = {
+    Enabled = false,
+    Prediction = 0,
+    TargetPart = "Head",
+    HealthCheck = true,
+    PassiveCheck = false,
+    WallCheck = false,
+    Kent = false,
+    FOV = {
+        Radius = 60,
+        Visible = false,
+        Color = Color3.fromRGB(171, 0, 255)
+    },
+    ToggleKey = "L",
+    DynamicPrediction = true,
+    FlashPartNames = {"Flash", "FlashPart", "FirePoint", "Muzzle"},
+    UseFlashPart = true,
+    IgnoreTransparent = true,
+    IgnoreNonCollidable = true,
+    Tracer = {
+        Enabled = false,
+        Color = Color3.fromRGB(171, 0, 255),
+        Thickness = 1
+    }
+}
+
+--
+-- ITEM MODIFICATION SYSTEM
+--
+local MOD_CONFIG = {
+    PerfectAccuracy = {
+        params = {"scatter"},
+        active_value = 999,
+        default_value = 1,
+        display_name = "Perfect Accuracy"
+    },
+    NoRecoil = {
+        params = {"GunRecoilX", "GunRecoil"},
+        active_value = 0,
+        default_value = 1,
+        display_name = "No Recoil"
+    },
+    InsatntEquip = {
+        params = {"EquipSpeed"},
+        active_value = 0.0000001,
+        default_value = 1,
+        display_name = "Instant Equip"
+    },
+    PerfectFirerate = {
+        params = {"waittime"},
+        active_value = 0.00001,
+        default_value = 1,
+        display_name = "Perfect Firerate"
+    },
+    ReloadSpeed = {
+        params = {"ReloadSpeed", "ReloadSpeed2"},
+        active_value = 0.00001,
+        default_value = 1,
+        display_name = "Reload Speed"
+    },
+    NoAimSway = {
+        params = {"AimSway"},
+        active_value = 0.00001,
+        default_value = 1,
+        display_name = "No Aim Sway"
+    },
+    FastAiming = {
+        params = {"AimSpeed"},
+        active_value = 0.00001,
+        default_value = 1,
+        display_name = "Fast Aiming"
+    }
+}
+
+local ModStates = {
+    AutoApply = false,
+    CheckNewItems = false
+}
+
+-- Инициализация состояний модификаций
+for modName in pairs(MOD_CONFIG) do
+    ModStates[modName] = false
+end
+
+-- Кэш оригинальных значений для модификаций
+local OriginalValues = {}
+local TrackedTools = {}
+
+--
+-- AURA SYSTEM
+--
+local AuraSystem = {
+    MedkitAura = {
+        Enabled = false,
+        HealRate = 1,
+        TargetPlayers = {},
+        Running = false
+    },
+    WrenchAura = {
+        Enabled = false,
+        HealRate = 1,
+        TargetPlayers = {},
+        Running = false
+    },
+    PickaxeAura = {
+        Enabled = false,
+        AttackRate = 1,
+        ExcludedPlayers = {},
+        Running = false
+    }
+}
+
+-- AIMBOT VARIABLES
+local CurrentTarget = nil
+local IsMouseHeld = false
+local AimConnection = nil
+local FOVCircle = nil
+local AutoAcquireConnection = nil
+
+-- SILENT AIM VARIABLES
+local Mouse = player:GetMouse()
+local CurrentCamera = workspace.CurrentCamera
+local InsetY = GuiService:GetGuiInset().Y
+local SilentAimFOVCircle, TargetDot, CenterDot, TracerLine
+local IsTargeting = false
+local Target
+local originalIndex
+local lastWallCheck = 0
+local wallCheckCache = {}
+
+
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local player = Players.LocalPlayer
+
+
+
+
+local Workspace = game:GetService("Workspace")
+
+local player = Players.LocalPlayer
+local Camera = Workspace.CurrentCamera
+
+-- INF AMMO SYSTEM (гибридная версия)
+local isEnabled = false
+local connections = {}
+local mainLoopActive = false
+
+-- Функция получения ВСЕХ инструментов (из newestpware)
+local function GetAllPlayerTools()
+    local tools = {}
+    
+    local backpack = player:FindFirstChild("Backpack")
+    if backpack then
+        for _, item in ipairs(backpack:GetChildren()) do
+            if item:IsA("Tool") then
+                table.insert(tools, item)
+            end
+        end
+    end
+    
+    if player.Character then
+        for _, item in ipairs(player.Character:GetChildren()) do
+            if item:IsA("Tool") then
+                table.insert(tools, item)
+            end
+        end
+    end
+    
+    return tools
+end
+
+-- Функция поиска реального оружия в workspace (из newestpware)
+local function FindWeaponInWorkspace(tool)
+    if not tool then return nil end
+    
+    local playerFolder = workspace:FindFirstChild(player.Name)
+    if not playerFolder then return nil end
+    
+    local weapon = playerFolder:FindFirstChild(tool.Name, true)
+    return weapon
+end
+
+-- Функция проверки готовности оружия (из newestpware)
+local function IsWeaponReady(weapon)
+    if not weapon then return false end
+    if not weapon:FindFirstChild("GunScript") then return false end
+    if not weapon.GunScript:FindFirstChild("ClientAmmo") then return false end
+    return true
+end
+
+-- Функция заморозки ClientAmmo (из 15.lua)
+local function freezeAmmo(weapon)
+    if weapon and weapon:FindFirstChild("GunScript") then
+        local gunScript = weapon.GunScript
+        if gunScript:FindFirstChild("ClientAmmo") then
+            local ammo = gunScript.ClientAmmo
+            local originalValue = ammo.Value
+            local connection = ammo.Changed:Connect(function()
+                if ammo.Value ~= originalValue then
+                    ammo.Value = originalValue
+                end
+            end)
+            table.insert(connections, connection)
+            ammo.Value = originalValue
+        end
+    end
+end
+
+-- Функция принудительной перезарядки (из 15.lua) - ИСПРАВЛЕННАЯ ВЕРСИЯ
+local function forceReload(character)
+    if not character then return end
+
+    for _, tool in ipairs(character:GetDescendants()) do
+        if tool:IsA("Tool") then
+            -- Используем поиск оружия из newestpware вместо прямого обращения к workspace[player.Name]
+            local weapon = FindWeaponInWorkspace(tool)
+            if not weapon then continue end
+
+            local reloadEvent = weapon:FindFirstChild("ReloadEvent")
+            if not reloadEvent then continue end
+
+            local function fireReload(args)
+                reloadEvent:FireServer(unpack(args, 1, table.maxn(args)))
+            end
+
+            fireReload({[11] = "startReload"})
+            fireReload({[14] = 0, [11] = "magMath"})
+            fireReload({[14] = 3, [11] = "insertMag"})
+            fireReload({[14] = 3, [11] = "stopReload"})
+        end
+    end
+end
+
+-- Очистка соединений (из 15.lua)
+local function cleanup()
+    for _, connection in ipairs(connections) do
+        connection:Disconnect()
+    end
+    connections = {}
+end
+
+-- Обработка оружия (гибридная функция)
+local function processWeapons(character)
+    if not character then return end
+
+    for _, tool in ipairs(character:GetDescendants()) do
+        if tool:IsA("Tool") then
+            -- Используем поиск оружия из newestpware
+            local weapon = FindWeaponInWorkspace(tool)
+            if not weapon then continue end
+            
+            -- Используем проверку готовности из newestpware
+            if IsWeaponReady(weapon) then
+                -- Используем заморозку патронов из 15.lua
+                freezeAmmo(weapon)
+            end
+        end
+    end
+    
+    -- Используем принудительную перезарядку из 15.lua
+    forceReload(character)
+end
+
+-- Основной цикл (из 15.lua)
+local function mainLoop()
+    while isEnabled do
+        local character = player.Character or player.CharacterAdded:Wait()
+        processWeapons(character)
+        task.wait(0.1)
+    end
+end
+
+--
+-- ITEM MODIFICATION FUNCTIONS
+--
+local function SetupToolStructure(tool)
+    if not tool or not tool:IsA("Tool") then return false end
+    local attachmentFolder = tool:FindFirstChild("AttachmentFolder")
+    if not attachmentFolder then return false end
+
+    local innerTool = attachmentFolder:FindFirstChild("Tool") or Instance.new("Tool")
+    innerTool.Name = "Tool"
+    innerTool.Parent = attachmentFolder
+
+    if not innerTool:FindFirstChild("IsAttachment") then
+        local isAttachment = Instance.new("StringValue")
+        isAttachment.Name = "IsAttachment"
+        isAttachment.Value = "Gripp"
+        isAttachment.Parent = innerTool
+    end
+
+    if not innerTool:FindFirstChild("Weight") then
+        local weight = Instance.new("NumberValue")
+        weight.Name = "Weight"
+        weight.Value = 0.1
+        weight.Parent = innerTool
+        
+        local originalWeight = Instance.new("NumberValue")
+        originalWeight.Name = "OriginalWeight"
+        originalWeight.Value = 0.1
+        originalWeight.Parent = weight
+    end
+
+    local statsFolder = innerTool:FindFirstChild("Stats") or Instance.new("Folder")
+    statsFolder.Name = "Stats"
+    statsFolder.Parent = innerTool
+
+    return true
+end
+
+local function ProcessWeapon(tool)
+    if not SetupToolStructure(tool) then return end
+
+    local innerTool = tool.AttachmentFolder:FindFirstChild("Tool")
+    if not innerTool then return end
+
+    local statsFolder = innerTool:FindFirstChild("Stats")
+    if not statsFolder then return end
+
+    for modName, config in pairs(MOD_CONFIG) do
+        for _, paramName in ipairs(config.params) do
+            if not OriginalValues[tool] then OriginalValues[tool] = {} end
+            if OriginalValues[tool][paramName] == nil then
+                local currentValue = statsFolder:FindFirstChild(paramName)
+                OriginalValues[tool][paramName] = currentValue and currentValue.Value or config.default_value
+            end
+
+            local valueToSet = ModStates[modName] and config.active_value or OriginalValues[tool][paramName]
+            
+            local param = statsFolder:FindFirstChild(paramName) or Instance.new("NumberValue")
+            param.Name = paramName
+            param.Value = valueToSet
+            param.Parent = statsFolder
+        end
+    end
+end
+
+local function GetValidPlayerTools()
+    local tools = {}
+    
+    if player.Character then
+        for _, item in ipairs(player.Character:GetDescendants()) do
+            if item:IsA("Tool") and item:FindFirstChild("AttachmentFolder") then
+                table.insert(tools, item)
+            end
+        end
+    end
+    
+    local backpack = player:FindFirstChild("Backpack")
+    if backpack then
+        for _, item in ipairs(backpack:GetChildren()) do
+            if item:IsA("Tool") and item:FindFirstChild("AttachmentFolder") then
+                table.insert(tools, item)
+            end
+        end
+    end
+    
+    return tools
+end
+
+local function ApplyModifications()
+    for _, tool in ipairs(GetValidPlayerTools()) do
+        ProcessWeapon(tool)
+    end
+end
+
+local function CheckForNewTools()
+    if not ModStates.CheckNewItems or not ModStates.AutoApply then return end
+    
+    local currentTools = GetValidPlayerTools()
+    local newToolsFound = false
+    
+    for _, tool in ipairs(currentTools) do
+        if not TrackedTools[tool] then
+            TrackedTools[tool] = true
+            newToolsFound = true
+        end
+    end
+    
+    if newToolsFound then
+        ApplyModifications()
+    end
+    
+    for tool in pairs(TrackedTools) do
+        if not tool:IsDescendantOf(game) then
+            TrackedTools[tool] = nil
+        end
+    end
+end
+
+--
+-- AIMBOT FUNCTIONS
+--
+local function GetPlayerList()
+    local playerNames = {}
+    for _, p in pairs(Players:GetPlayers()) do
+        if p ~= player then
+            table.insert(playerNames, p.Name)
+        end
+    end
+    return playerNames
+end
+
+local function CreateFOVCircle()
+    if FOVCircle then
+        FOVCircle:Remove()
+        FOVCircle = nil
+    end
+    
+    if not Aimbot.ShowFOV or not Aimbot.Enabled then return end
+    
+    FOVCircle = Drawing.new("Circle")
+    FOVCircle.Visible = true
+    FOVCircle.Radius = Aimbot.FieldOfView
+    FOVCircle.Color = Color3.fromRGB(171, 0, 255)
+    FOVCircle.Thickness = 1
+    FOVCircle.Filled = false
+    FOVCircle.Transparency = 1
+    FOVCircle.Position = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
+end
+
+local function GetCharacter(player)
+    return player and player.Character
+end
+
+local function GetHumanoid(character)
+    return character and character:FindFirstChildOfClass("Humanoid")
+end
+
+local function GetAimPart(character)
+    if not character then return nil end
+    
+    local part = character:FindFirstChild(Aimbot.TargetPart)
+    if part then return part end
+    
+    local alternatives = {"Head", "HumanoidRootPart", "UpperTorso", "Torso"}
+    for _, altPart in pairs(alternatives) do
+        part = character:FindFirstChild(altPart)
+        if part then return part end
+    end
+    
+    return nil
+end
+
+local function IsAlive(character)
+    local humanoid = GetHumanoid(character)
+    return humanoid and humanoid.Health > 0
+end
+
+local function IsInFOV(targetScreenPos)
+    if not Aimbot.UseFOVLimit then return true end
+    
+    local screenCenter = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
+    local distance = (targetScreenPos - screenCenter).Magnitude
+    return distance <= Aimbot.FieldOfView
+end
+
+local function GetValidTargets()
+    local targets = {}
+    
+    for _, p in pairs(Players:GetPlayers()) do
+        if p == player then continue end
+        
+        if Aimbot.PlayerExceptions[p.Name] == true then
+            continue
+        end
+        
+        local character = GetCharacter(p)
+        if not character then continue end
+        
+        if not IsAlive(character) then continue end
+        
+        local aimPart = GetAimPart(character)
+        if not aimPart then continue end
+        
+        local screenPoint, onScreen = Camera:WorldToViewportPoint(aimPart.Position)
+        if not onScreen then continue end
+        
+        local screenPos = Vector2.new(screenPoint.X, screenPoint.Y)
+        local screenCenter = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
+        local screenDistance = (screenPos - screenCenter).Magnitude
+        
+        if not IsInFOV(screenPos) then continue end
+        
+        local targetData = {
+            Player = p,
+            Character = character,
+            AimPart = aimPart,
+            ScreenDistance = screenDistance,
+            ScreenPosition = screenPos
+        }
+        
+        table.insert(targets, targetData)
+    end
+    
+    return targets
+end
+
+local function FindBestAimbotTarget()
+    local targets = GetValidTargets()
+    local bestTarget = nil
+    local closestFOV = Aimbot.FieldOfView
+    
+    for _, target in pairs(targets) do
+        if target.ScreenDistance < closestFOV then
+            closestFOV = target.ScreenDistance
+            bestTarget = target
+        end
+    end
+    
+    return bestTarget
+end
+
+local function SmoothAim(targetPosition)
+    local currentCFrame = Camera.CFrame
+    local targetDirection = (targetPosition - currentCFrame.Position).Unit
+    
+    local targetCFrame = CFrame.lookAt(currentCFrame.Position, currentCFrame.Position + targetDirection)
+    local smoothFactor = math.max(Aimbot.Smoothness, 1)
+    local newCFrame = currentCFrame:Lerp(targetCFrame, 1 / smoothFactor)
+    
+    Camera.CFrame = newCFrame
+end
+
+local function InstantAim(targetPosition)
+    local currentPosition = Camera.CFrame.Position
+    local targetDirection = (targetPosition - currentPosition).Unit
+    Camera.CFrame = CFrame.lookAt(currentPosition, currentPosition + targetDirection)
+end
+
+local function AimLoop()
+    if not Aimbot.Enabled or not CurrentTarget then return end
+    
+    local character = GetCharacter(CurrentTarget.Player)
+    if not character or not IsAlive(character) then
+        StopAiming()
+        return
+    end
+    
+    local aimPart = GetAimPart(character)
+    if not aimPart then 
+        StopAiming()
+        return 
+    end
+    
+    if Aimbot.Smoothness > 1 then
+        SmoothAim(aimPart.Position)
+    else
+        InstantAim(aimPart.Position)
+    end
+end
+
+local function StartAiming()
+    if not Aimbot.Enabled then return end
+    
+    local target = FindBestAimbotTarget()
+    
+    if target then
+        CurrentTarget = target
+        
+        if AimConnection then
+            AimConnection:Disconnect()
+        end
+        
+        AimConnection = RunService.RenderStepped:Connect(function()
+            if CurrentTarget then
+                AimLoop()
+            else
+                StopAiming()
+            end
+        end)
+    end
+end
+
+local function StopAiming()
+    CurrentTarget = nil
+    
+    if AimConnection then
+        AimConnection:Disconnect()
+        AimConnection = nil
+    end
+end
+
+local function StartAutoAcquire()
+    if not IsMouseHeld then return end
+    
+    if AutoAcquireConnection then
+        AutoAcquireConnection:Disconnect()
+    end
+    
+    AutoAcquireConnection = RunService.Heartbeat:Connect(function()
+        if IsMouseHeld and not CurrentTarget then
+            local target = FindBestAimbotTarget()
+            if target then
+                CurrentTarget = target
+                
+                if AimConnection then
+                    AimConnection:Disconnect()
+                end
+                
+                AimConnection = RunService.RenderStepped:Connect(function()
+                    if CurrentTarget then
+                        AimLoop()
+                    else
+                        StopAiming()
+                    end
+                end)
+            end
+        end
+    end)
+end
+
+local function StopAutoAcquire()
+    if AutoAcquireConnection then
+        AutoAcquireConnection:Disconnect()
+        AutoAcquireConnection = nil
+    end
+end
+
+--
+-- SILENT AIM FUNCTIONS
+--
+local function InitSilentAimDrawings()
+    if not SilentAimFOVCircle then SilentAimFOVCircle = Drawing.new("Circle") end
+    if not TargetDot then TargetDot = Drawing.new("Circle") end
+    if not CenterDot then CenterDot = Drawing.new("Circle") end
+    if not TracerLine then TracerLine = Drawing.new("Line") end
+    
+    if SilentAimFOVCircle then
+        SilentAimFOVCircle.Visible = SilentAim.FOV.Visible
+        SilentAimFOVCircle.Transparency = 0.7
+        SilentAimFOVCircle.Thickness = 1
+        SilentAimFOVCircle.Filled = false
+        SilentAimFOVCircle.Radius = SilentAim.FOV.Radius
+        SilentAimFOVCircle.Color = SilentAim.FOV.Color
+    end
+    
+    if TargetDot then
+        TargetDot.Visible = false
+        TargetDot.Transparency = 1
+        TargetDot.Thickness = 1
+        TargetDot.Filled = true
+        TargetDot.Radius = 2
+        TargetDot.Color = Color3.fromRGB(171, 0, 255)
+    end
+    
+    if CenterDot then
+        CenterDot.Visible = SilentAim.FOV.Visible
+        CenterDot.Transparency = 1
+        CenterDot.Thickness = 1
+        CenterDot.Filled = true
+        CenterDot.Radius = 2
+        CenterDot.Color = Color3.fromRGB(171, 0, 255)
+    end
+    
+    if TracerLine then
+        TracerLine.Visible = false
+        TracerLine.Transparency = 1
+        TracerLine.Thickness = SilentAim.Tracer.Thickness
+        TracerLine.Color = SilentAim.Tracer.Color
+    end
+end
+
+local function getFlashPart()
+    if not player or not player.Character then return nil end
+    
+    local tool = player.Character:FindFirstChildOfClass("Tool")
+    if not tool then return nil end
+    
+    for _, name in ipairs(SilentAim.FlashPartNames) do
+        local flash = tool:FindFirstChild(name) or tool:FindFirstChild(name, true)
+        if flash and flash:IsA("BasePart") then
+            return flash
+        end
+    end
+    
+    local handle = tool:FindFirstChild("Handle")
+    if handle and handle:IsA("BasePart") then
+        return handle
+    end
+    
+    return nil
+end
+
+local function hasForceField(character)
+    return character and character:FindFirstChildOfClass("ForceField") ~= nil
+end
+
+local function hasLowHealth(character)
+    if not character then return false end
+    local humanoid = character:FindFirstChild("Humanoid")
+    if not humanoid then return false end
+    return humanoid.Health <= 1
+end
+
+local function hasGunScript()
+    if not player or not player.Character then return false end
+    
+    local tool = player.Character:FindFirstChildOfClass("Tool") or player.Character:FindFirstChildOfClass("HopperBin")
+    if not tool then return false end
+    
+    return tool:FindFirstChild("GunScript") ~= nil
+end
+
+local function getCursorCenter()
+    if not CurrentCamera then return Vector2.new(0, 0) end
+    local viewportSize = CurrentCamera.ViewportSize
+    return Vector2.new(viewportSize.X/2, viewportSize.Y/2)
+end
+
+local function CalculatePrediction(targetPart)
+    if not targetPart then return SilentAim.Prediction end
+    local basePrediction = SilentAim.Prediction
+    
+    local velocity = targetPart.Velocity.Magnitude
+    if velocity < 5 then
+        return basePrediction * 0.5
+    elseif velocity > 30 then
+        return basePrediction * 1.5
+    else
+        return basePrediction * (0.5 + velocity/30)
+    end
+end
+
+local function WallCheck(origin, destination)
+    if not SilentAim.WallCheck then return true end
+    
+    local cacheKey = tostring(origin)..tostring(destination)
+    if wallCheckCache[cacheKey] and tick() - lastWallCheck < 0.1 then
+        return wallCheckCache[cacheKey]
+    end
+    
+    local direction = (destination - origin)
+    local distance = direction.Magnitude
+    direction = direction.Unit
+    
+    local raycastParams = RaycastParams.new()
+    raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
+    raycastParams.FilterDescendantsInstances = {player.Character, CurrentCamera}
+    raycastParams.IgnoreWater = true
+    
+    local raycastResult = workspace:Raycast(origin, direction * distance, raycastParams)
+    
+    if not raycastResult then 
+        wallCheckCache[cacheKey] = true
+        lastWallCheck = tick()
+        return true 
+    end
+    
+    local hitPart = raycastResult.Instance
+    if not hitPart then 
+        wallCheckCache[cacheKey] = true
+        lastWallCheck = tick()
+        return true 
+    end
+    
+    if hitPart.CanCollide == false then
+        wallCheckCache[cacheKey] = true
+        lastWallCheck = tick()
+        return true
+    end
+    
+    local transparency = hitPart.Transparency or 0
+    if transparency > 0.9 then
+        wallCheckCache[cacheKey] = true
+        lastWallCheck = tick()
+        return true
+    end
+    
+    local texture = hitPart:FindFirstChildOfClass("Texture")
+    if texture and (texture.Transparency > 0.9) then
+        wallCheckCache[cacheKey] = true
+        lastWallCheck = tick()
+        return true
+    end
+    
+    local material = hitPart.Material
+    if material == Enum.Material.Glass or material == Enum.Material.ForceField then
+        wallCheckCache[cacheKey] = true
+        lastWallCheck = tick()
+        return true
+    end
+    
+    wallCheckCache[cacheKey] = false
+    lastWallCheck = tick()
+    return false
+end
+
+local function FindBestTarget()
+    if not SilentAim.Enabled or not Players or not player then return nil end
+    
+    local flashPart = getFlashPart()
+    local origin = flashPart and flashPart.Position or (CurrentCamera and CurrentCamera.CFrame.Position or Vector3.new())
+    local bestTarget = nil
+    local closestDistance = math.huge
+    local screenCenter = getCursorCenter()
+
+    for _, p in ipairs(Players:GetPlayers()) do
+        if p == player then continue end
+        
+        -- Проверяем KENT пользователей
+        if not SilentAim.Kent and isPWarePlayer(p) then continue end
+        
+        local character = p.Character
+        if not character then continue end
+        
+        if SilentAim.PassiveCheck and hasForceField(character) then continue end
+        
+        local humanoid = character:FindFirstChild("Humanoid")
+        if not humanoid or humanoid.Health <= 0 then continue end
+        
+        if SilentAim.HealthCheck and humanoid.Health <= 1 then continue end
+        
+        local targetPart = character:FindFirstChild(SilentAim.TargetPart)
+        if not targetPart then continue end
+        
+        local prediction = CalculatePrediction(targetPart)
+        local predictedPosition = targetPart.Position + (targetPart.Velocity * prediction)
+        
+        if not WallCheck(origin, predictedPosition) then continue end
+        
+        local screenPos, onScreen = CurrentCamera:WorldToViewportPoint(predictedPosition)
+        if not onScreen then continue end
+        
+        local targetPos = Vector2.new(screenPos.X, screenPos.Y)
+        local distance = (targetPos - screenCenter).Magnitude
+        
+        if distance < (SilentAimFOVCircle and SilentAimFOVCircle.Radius or 60) and distance < closestDistance then
+            closestDistance = distance
+            bestTarget = {
+                Player = p,
+                Part = targetPart,
+                Distance = distance,
+                PredictedPosition = predictedPosition,
+                FlashPosition = origin
+            }
+        end
+    end
+    
+    IsTargeting = bestTarget ~= nil
+    return bestTarget
+end
+
+local function UpdateSilentAimVisuals()
+    if not SilentAimFOVCircle or not TargetDot or not CenterDot or not TracerLine then return end
+    
+    local center = getCursorCenter()
+    if SilentAimFOVCircle then SilentAimFOVCircle.Position = center end
+    if TargetDot then TargetDot.Position = center end
+    if CenterDot then CenterDot.Position = center end
+    
+    if SilentAimFOVCircle then SilentAimFOVCircle.Visible = SilentAim.Enabled and SilentAim.FOV.Visible end
+    if CenterDot then CenterDot.Visible = SilentAim.Enabled and SilentAim.FOV.Visible end
+    if TargetDot then TargetDot.Visible = SilentAim.Enabled and IsTargeting end
+    
+    if SilentAim.Tracer.Enabled and IsTargeting and SilentAim.Enabled then
+        local targetData = FindBestTarget()
+        if targetData then
+            local screenPos = CurrentCamera:WorldToViewportPoint(targetData.PredictedPosition)
+            TracerLine.From = center
+            TracerLine.To = Vector2.new(screenPos.X, screenPos.Y)
+            TracerLine.Visible = true
+        else
+            TracerLine.Visible = false
+        end
+    else
+        TracerLine.Visible = false
+    end
+end
+
+--
+-- AURA SYSTEM FUNCTIONS
+--
+local function ShouldHealPlayer(targetPlayer)
+    if not AuraSystem.MedkitAura.TargetPlayers then return true end
+    if #AuraSystem.MedkitAura.TargetPlayers == 0 then return true end
+    return table.find(AuraSystem.MedkitAura.TargetPlayers, targetPlayer.Name) ~= nil
+end
+
+local function StartMedkitAura()
+    if AuraSystem.MedkitAura.Running then return end
+    AuraSystem.MedkitAura.Running = true
+    
+    coroutine.wrap(function()
+        while AuraSystem.MedkitAura.Running do
+            if AuraSystem.MedkitAura.Enabled then
+                for _, targetPlayer in pairs(Players:GetPlayers()) do
+                    if targetPlayer ~= player and targetPlayer.Character then
+                        if not ShouldHealPlayer(targetPlayer) then continue end
+                        
+                        local character = targetPlayer.Character
+                        local medkit = player.Character and player.Character:FindFirstChild("Medkit")
+                        
+                        if medkit and medkit:FindFirstChild("ActionMain") then
+                            local args = {"heal", character}
+                            medkit.ActionMain:FireServer(unpack(args))
+                        end
+                    end
+                end
+            end
+            
+            if AuraSystem.MedkitAura.HealRate == 1 then
+                wait(0.0000000000000000000000000000001)
+            else
+                wait(AuraSystem.MedkitAura.HealRate / 1000)
+            end
+        end
+    end)()
+end
+
+local function StopMedkitAura()
+    AuraSystem.MedkitAura.Running = false
+end
+
+local function ShouldWrenchHealPlayer(targetPlayer)
+    if not AuraSystem.WrenchAura.TargetPlayers then return true end
+    if #AuraSystem.WrenchAura.TargetPlayers == 0 then return true end
+    return table.find(AuraSystem.WrenchAura.TargetPlayers, targetPlayer.Name) ~= nil
+end
+
+local function StartWrenchAura()
+    if AuraSystem.WrenchAura.Running then return end
+    AuraSystem.WrenchAura.Running = true
+    
+    coroutine.wrap(function()
+        while AuraSystem.WrenchAura.Running do
+            if AuraSystem.WrenchAura.Enabled then
+                for _, targetPlayer in pairs(Players:GetPlayers()) do
+                    if targetPlayer ~= player and targetPlayer.Character then
+                        if not ShouldWrenchHealPlayer(targetPlayer) then continue end
+                        
+                        local character = targetPlayer.Character
+                        local wrench = player.Character and player.Character:FindFirstChild("Wrench")
+                        
+                        if wrench and wrench:FindFirstChild("ActionMain") then
+                            local args = {"heal", character}
+                            wrench.ActionMain:FireServer(unpack(args))
+                        end
+                    end
+                end
+            end
+            
+            if AuraSystem.WrenchAura.HealRate == 1 then
+                wait(0.0000000000000000000000000000001)
+            else
+                wait(AuraSystem.WrenchAura.HealRate / 1000)
+            end
+        end
+    end)()
+end
+
+local function StopWrenchAura()
+    AuraSystem.WrenchAura.Running = false
+end
+
+local function ShouldAttackPlayer(targetPlayer)
+    if not AuraSystem.PickaxeAura.ExcludedPlayers then return true end
+    return table.find(AuraSystem.PickaxeAura.ExcludedPlayers, targetPlayer.Name) == nil
+end
+
+local function StartPickaxeAura()
+    if AuraSystem.PickaxeAura.Running then return end
+    AuraSystem.PickaxeAura.Running = true
+    
+    coroutine.wrap(function()
+        while AuraSystem.PickaxeAura.Running do
+            if AuraSystem.PickaxeAura.Enabled then
+                for _, targetPlayer in pairs(Players:GetPlayers()) do
+                    if targetPlayer ~= player and targetPlayer.Character then
+                        if not ShouldAttackPlayer(targetPlayer) then continue end
+                        
+                        local character = targetPlayer.Character
+                        local pickaxe = player.Character and player.Character:FindFirstChild("Pickaxe")
+                        
+                        if pickaxe and pickaxe:FindFirstChild("ActionMain") then
+                            local args = {
+                                "attack",
+                                900,
+                                1,
+                                45
+                            }
+                            pickaxe.ActionMain:FireServer(unpack(args))
+                        end
+                    end
+                end
+            end
+            
+            if AuraSystem.PickaxeAura.AttackRate == 1 then
+                wait(0.0000000000000000000000000000001)
+            else
+                wait(AuraSystem.PickaxeAura.AttackRate / 1000)
+            end
+        end
+    end)()
+end
+
+local function StopPickaxeAura()
+    AuraSystem.PickaxeAura.Running = false
+end
+
+--
+-- EVENT HANDLERS
+--
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    
+    if input.UserInputType == Enum.UserInputType.MouseButton2 then
+        IsMouseHeld = true
+        StartAiming()
+        StartAutoAcquire()
+    end
+    
+    if input.KeyCode == Enum.KeyCode[SilentAim.ToggleKey] then
+        SilentAim.Enabled = not SilentAim.Enabled
+        UpdateSilentAimVisuals()
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    
+    if input.UserInputType == Enum.UserInputType.MouseButton2 then
+        IsMouseHeld = false
+        StopAiming()
+        StopAutoAcquire()
+    end
+end)
+
+-- Silent Aim hook
+if not originalIndex then
+    originalIndex = hookmetamethod(game, "__index", function(self, key)
+        if not SilentAim.Enabled then return originalIndex(self, key) end
+        
+        if self:IsA("Mouse") and key == "Hit" then
+            if not hasGunScript() then return originalIndex(self, key) end
+            
+            local targetData = FindBestTarget()
+            
+            if targetData then
+                IsTargeting = true
+                return CFrame.new(targetData.PredictedPosition)
+            end
+            IsTargeting = false
+        end
+        
+        return originalIndex(self, key)
+    end)
+end
+
+--
+---- INSTA HEAL AND WRENCH
+--
+
+-- Instant Healing System
+
+local LocalPlayer = Players.LocalPlayer
+local RunService = game:GetService("RunService")
+
+local healingActive = false
+local autoHealCoroutine = nil
+
+local function stopHealing()
+    if autoHealCoroutine then
+        coroutine.close(autoHealCoroutine)
+        autoHealCoroutine = nil
+    end
+end
+
+local function startHealing()
+    stopHealing()
+    
+    autoHealCoroutine = coroutine.create(function()
+        while healingActive do
+            -- Wait for alive character with medkit
+            while healingActive and (not LocalPlayer.Character or 
+                  not LocalPlayer.Character:FindFirstChild("Humanoid") or 
+                  LocalPlayer.Character.Humanoid.Health <= 0) do
+                task.wait(0.5)
+            end
+            
+            if not healingActive then break end
+            
+            -- Wait for Medkit
+            while healingActive and LocalPlayer.Character and 
+                  not LocalPlayer.Character:FindFirstChild("Medkit") do
+                task.wait(0.5)
+            end
+            
+            if not healingActive then break end
+            
+            -- Main healing loop
+            while healingActive and LocalPlayer.Character and 
+                  LocalPlayer.Character:FindFirstChild("Humanoid") and 
+                  LocalPlayer.Character.Humanoid.Health > 0 and
+                  LocalPlayer.Character:FindFirstChild("Medkit") do
+                
+                local success, err = pcall(function()
+                    local args = {"heal", LocalPlayer.Character}
+                    LocalPlayer.Character.Medkit.ActionMain:FireServer(unpack(args))
+                end)
+                
+                if not success then
+                    warn("Healing error:", err)
+                    break
+                end
+                
+                task.wait(0.0001)
+            end
+            
+            task.wait(0.1)
+        end
+    end)
+    
+    coroutine.resume(autoHealCoroutine)
+end
+
+-- Instant Repairing System
+local repairingActive = false
+local autoRepairCoroutine = nil
+
+local function stopRepairing()
+    if autoRepairCoroutine then
+        coroutine.close(autoRepairCoroutine)
+        autoRepairCoroutine = nil
+    end
+end
+
+local function startRepairing()
+    stopRepairing()
+    
+    autoRepairCoroutine = coroutine.create(function()
+        while repairingActive do
+            -- Wait for alive character with wrench
+            while repairingActive and (not LocalPlayer.Character or 
+                  not LocalPlayer.Character:FindFirstChild("Humanoid") or 
+                  LocalPlayer.Character.Humanoid.Health <= 0) do
+                task.wait(0.5)
+            end
+            
+            if not repairingActive then break end
+            
+            -- Wait for Wrench
+            while repairingActive and LocalPlayer.Character and 
+                  not LocalPlayer.Character:FindFirstChild("Wrench") do
+                task.wait(0.5)
+            end
+            
+            if not repairingActive then break end
+            
+            -- Main repairing loop
+            while repairingActive and LocalPlayer.Character and 
+                  LocalPlayer.Character:FindFirstChild("Humanoid") and 
+                  LocalPlayer.Character.Humanoid.Health > 0 and
+                  LocalPlayer.Character:FindFirstChild("Wrench") do
+                
+                local success, err = pcall(function()
+                    local args = {"heal", LocalPlayer.Character}
+                    LocalPlayer.Character.Wrench.ActionMain:FireServer(unpack(args))
+                end)
+                
+                if not success then
+                    warn("Repairing error:", err)
+                    break
+                end
+                
+                task.wait(0.0001)
+            end
+            
+            task.wait(0.1)
+        end
+    end)
+    
+    coroutine.resume(autoRepairCoroutine)
+end
+
+--
+-- ZOVCOPTER
+--
+
+-- Services
+
+local Workspace = game:GetService("Workspace")
+local RunService = game:GetService("RunService")
+
+local localPlayer = Players.LocalPlayer
+local camera = Workspace.CurrentCamera
+
+-- Настройки
+local TRACKING_FOLDER = "ActiveVehicles"
+local UPDATE_INTERVAL = 0.3
+
+-- Состояние системы
+local isTrackingEnabled = false
+local targetPlayerName = ""
+local trackingConnection = nil
+local activeBodyPositions = {}
+local exceptionParts = {} -- Храним части с включенной коллизией
+
+-- Функция для получения списка игроков
+local function getPlayerList()
+    local playerNames = {}
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= localPlayer then
+            table.insert(playerNames, player.Name)
+        end
+    end
+    return playerNames
+end
+
+-- Основные функции
+local function findPlayerByName(name)
+    if not name or name == "" then return nil end
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player.Name == name then
+            return player
+        end
+    end
+    return nil
+end
+
+local function selectRandomPart(model)
+    local parts = {}
+    for _, part in ipairs(model:GetDescendants()) do
+        if part:IsA("BasePart") then
+            table.insert(parts, part)
+        end
+    end
+    if #parts > 0 then
+        return parts[math.random(1, #parts)]
+    end
+    return nil
+end
+
+local function setupVehiclePhysics(vehicle, exceptionPart)
+    for _, part in ipairs(vehicle:GetDescendants()) do
+        if part:IsA("BasePart") then
+            -- Удаляем старые силы
+            for _, force in ipairs(part:GetChildren()) do
+                if force:IsA("BodyPosition") or force:IsA("BodyForce") then
+                    force:Destroy()
+                end
+            end
+            
+            -- Настройка коллизии (включаем только для exceptionPart)
+            if part == exceptionPart then
+                part.CanCollide = true
+                part.Anchored = false
+            else
+                part.CanCollide = false
+                part.Anchored = false
+                
+                -- Создаем силу движения
+                local bodyPos = Instance.new("BodyPosition")
+                bodyPos.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+                bodyPos.P = 20000
+                bodyPos.D = 1500
+                bodyPos.Parent = part
+                
+                table.insert(activeBodyPositions, bodyPos)
+            end
+        end
+    end
+end
+
+local function stopTracking()
+    if trackingConnection then
+        trackingConnection:Disconnect()
+        trackingConnection = nil
+    end
+    
+    -- Восстанавливаем коллизию всем частям
+    for _, part in pairs(exceptionParts) do
+        if part and part.Parent then
+            part.CanCollide = true
+        end
+    end
+    exceptionParts = {}
+    
+    -- Удаляем все созданные BodyPosition
+    for _, bodyPos in ipairs(activeBodyPositions) do
+        if bodyPos and bodyPos.Parent then
+            bodyPos:Destroy()
+        end
+    end
+    activeBodyPositions = {}
+end
+
+local function updateTracking()
+    if not isTrackingEnabled or targetPlayerName == "" then return end
+    
+    local mouse = localPlayer:GetMouse()
+    local targetPos = mouse.Hit.Position
+    local trackingFolder = Workspace:FindFirstChild(TRACKING_FOLDER)
+    if not trackingFolder then return end
+    
+    for _, vehicle in ipairs(trackingFolder:GetChildren()) do
+        if vehicle:IsA("Model") then
+            -- Если это новая модель, выбираем часть с коллизией
+            if not exceptionParts[vehicle] then
+                exceptionParts[vehicle] = selectRandomPart(vehicle)
+                setupVehiclePhysics(vehicle, exceptionParts[vehicle])
+            end
+            
+            -- Обновляем позицию для всех частей без коллизии
+            for _, part in ipairs(vehicle:GetDescendants()) do
+                if part:IsA("BasePart") and part ~= exceptionParts[vehicle] then
+                    for _, force in ipairs(part:GetChildren()) do
+                        if force:IsA("BodyPosition") then
+                            force.Position = targetPos
+                        end
+                    end
+                end
+            end
+        end
+    end
+end
+
+local function startTracking()
+    stopTracking() -- Останавливаем предыдущее отслеживание
+    
+    trackingConnection = RunService.Heartbeat:Connect(function()
+        updateTracking()
+    end)
+end
+
+
+-- WALLBANG
+
+
+-- Переменные для управления скриптом
+local objectMoverEnabled = false
+local originalObjectLocations = {} -- Таблица для хранения оригинальных расположений объектов
+local movedObjectsFolder = nil
+local currentHighlight = nil
+local currentModel = nil
+local currentTargetPart = nil
+local connections = {}
+
+-- Переменная для хранения текущего keybind
+local currentKeybind = Enum.KeyCode.F5
+
+-- Функция для поиска InteractFunction в ReplicatedStorage
+local function findInteractFunction()
+    local ReplicatedStorage = game:GetService("ReplicatedStorage")
+    
+    local possibleNames = {
+        "InteractFunction",
+        "InteractRemote",
+        "InteractionFunction",
+        "InteractionRemote",
+        "Interact"
+    }
+    
+    for _, name in ipairs(possibleNames) do
+        local found = ReplicatedStorage:FindFirstChild(name)
+        if found then
+            return found
+        end
+    end
+    
+    for _, child in ipairs(ReplicatedStorage:GetDescendants()) do
+        for _, name in ipairs(possibleNames) do
+            if child.Name == name then
+                return child
+            end
+        end
+    end
+    
+    return nil
+end
+
+-- Функция для сохранения оригинальных расположений объектов
+local function saveOriginalLocations()
+    originalObjectLocations = {}
+    
+    local function saveFolderContents(folder, path)
+        for _, child in ipairs(folder:GetChildren()) do
+            local childPath = path .. "." .. child.Name
+            originalObjectLocations[child] = {
+                Parent = child.Parent,
+                Path = childPath
+            }
+            
+            if child:IsA("Folder") then
+                saveFolderContents(child, childPath)
+            end
+        end
+    end
+    
+    saveFolderContents(workspace, "workspace")
+end
+
+-- Функция для восстановления оригинальных расположений объектов
+local function restoreOriginalLocations()
+    if currentHighlight then
+        currentHighlight:Destroy()
+        currentHighlight = nil
+    end
+    
+    if movedObjectsFolder then
+        for object, locationInfo in pairs(originalObjectLocations) do
+            if object and object.Parent then
+                pcall(function()
+                    object.Parent = locationInfo.Parent
+                end)
+            end
+        end
+        movedObjectsFolder:Destroy()
+        movedObjectsFolder = nil
+    end
+    
+    originalObjectLocations = {}
+end
+
+-- Функция для переноса объектов в Camera
+local function moveObjectsToCamera()
+    local camera = workspace.CurrentCamera
+    if not camera then 
+        return false
+    end
+    
+    saveOriginalLocations()
+    
+    local function hasHumanoid(model)
+        return model:FindFirstChildOfClass("Humanoid") ~= nil
+    end
+    
+    local function processFolder(folder, parentInCamera)
+        for _, child in ipairs(folder:GetChildren()) do
+            if child:IsA("Model") and not hasHumanoid(child) then
+                child.Parent = parentInCamera
+            elseif child:IsA("Folder") then
+                local newFolder = Instance.new("Folder")
+                newFolder.Name = child.Name
+                newFolder.Parent = parentInCamera
+                processFolder(child, newFolder)
+            elseif child:IsA("Part") or child:IsA("MeshPart") or child:IsA("UnionOperation") then
+                local containerModel = Instance.new("Model")
+                containerModel.Name = child.Name .. "_Container"
+                containerModel.Parent = parentInCamera
+                child.Parent = containerModel
+            end
+        end
+    end
+    
+    if movedObjectsFolder then
+        movedObjectsFolder:Destroy()
+    end
+    
+    movedObjectsFolder = Instance.new("Folder")
+    movedObjectsFolder.Name = "MovedFromWorkspace"
+    movedObjectsFolder.Parent = camera
+    
+    processFolder(workspace, movedObjectsFolder)
+    
+    return true
+end
+
+-- Функция для проверки наличия BoolValue "Interact" в модели
+local function hasInteractBoolValue(model)
+    local interactValue = model:FindFirstChild("Interact")
+    if interactValue and interactValue:IsA("BoolValue") then
+        return true, interactValue
+    end
+    return false, nil
+end
+
+-- Функция для поиска модели с Interact
+local function findModelWithInteract(target)
+    if not target then return nil end
+    
+    local current = target
+    while current do
+        if current:IsA("Model") then
+            local hasInteract = hasInteractBoolValue(current)
+            if hasInteract then
+                return current
+            end
+        end
+        current = current.Parent
+    end
+    return nil
+end
+
+-- Функция для расчета расстояния между игроком и объектом
+local function getDistanceToPlayer(object)
+
+    local player = Players.LocalPlayer
+    local character = player.Character
+    
+    if not character then return math.huge end
+    
+    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+    if not humanoidRootPart then return math.huge end
+    
+    local objectPosition = object:GetPivot().Position
+    local playerPosition = humanoidRootPart.Position
+    
+    return (objectPosition - playerPosition).Magnitude
+end
+
+-- Функция для создания подсветки
+local function createHighlight(model)
+    if currentHighlight then
+        currentHighlight:Destroy()
+        currentHighlight = nil
+    end
+    
+    local highlight = Instance.new("Highlight")
+    highlight.FillColor = Color3.fromRGB(171, 0, 255) -- SKEBOB
+    highlight.OutlineColor = Color3.fromRGB(200, 200, 200)
+    highlight.FillTransparency = 0.5
+    highlight.OutlineTransparency = 0
+    highlight.Parent = model
+    
+    return highlight
+end
+
+-- Функция для вызова события взаимодействия
+local function callInteractEvent(targetPart, model)
+    local InteractFunction = findInteractFunction()
+    if not InteractFunction then
+        return
+    end
+    
+    if not targetPart then
+        return
+    end
+    
+    local _, boolValue = hasInteractBoolValue(model)
+    local currentValue = boolValue and boolValue.Value or false
+    
+    pcall(function()
+        InteractFunction:InvokeServer(
+            targetPart,
+            "Value",
+            not currentValue,
+            "interact"
+        )
+    end)
+end
+
+-- Функция для проверки, находится ли объект в перенесенной папке
+local function isInMovedObjects(object)
+    if not movedObjectsFolder then return false end
+    return object:IsDescendantOf(movedObjectsFolder)
+end
+
+-- Функция запуска скрипта
+local function startObjectMover()
+    if objectMoverEnabled then return end
+    
+    objectMoverEnabled = true
+
+    local RunService = game:GetService("RunService")
+    local UserInputService = game:GetService("UserInputService")
+    
+    local player = Players.LocalPlayer
+    local mouse = player:GetMouse()
+    
+    moveObjectsToCamera()
+    
+    local heartbeatConnection = RunService.Heartbeat:Connect(function()
+        if not objectMoverEnabled then return end
+        
+        local target = mouse.Target
+        if not target then
+            if currentHighlight then
+                currentHighlight:Destroy()
+                currentHighlight = nil
+                currentModel = nil
+                currentTargetPart = nil
+            end
+            return
+        end
+        
+        local modelWithInteract = findModelWithInteract(target)
+        
+        if modelWithInteract and isInMovedObjects(modelWithInteract) then
+            local distance = getDistanceToPlayer(modelWithInteract)
+            if distance > 8 then
+                if currentHighlight then
+                    currentHighlight:Destroy()
+                    currentHighlight = nil
+                    currentModel = nil
+                    currentTargetPart = nil
+                end
+                return
+            end
+            
+            if currentModel ~= modelWithInteract then
+                if currentHighlight then
+                    currentHighlight:Destroy()
+                    currentHighlight = nil
+                end
+                currentModel = modelWithInteract
+                currentTargetPart = target
+            end
+            
+            if modelWithInteract and modelWithInteract == currentModel and not currentHighlight then
+                currentHighlight = createHighlight(modelWithInteract)
+            end
+        else
+            if currentHighlight then
+                currentHighlight:Destroy()
+                currentHighlight = nil
+                currentModel = nil
+                currentTargetPart = nil
+            end
+        end
+    end)
+    table.insert(connections, heartbeatConnection)
+    
+    local inputConnection = UserInputService.InputBegan:Connect(function(input, gameProcessed)
+        if not objectMoverEnabled then return end
+        if gameProcessed then return end
+        
+        if input.KeyCode == Enum.KeyCode.E and currentModel and currentTargetPart then
+            local distance = getDistanceToPlayer(currentModel)
+            if distance <= 8 then
+                local hasInteract = hasInteractBoolValue(currentModel)
+                if hasInteract then
+                    callInteractEvent(currentTargetPart, currentModel)
+                end
+            end
+        end
+    end)
+    table.insert(connections, inputConnection)
+end
+
+-- Функция остановки скрипта
+local function stopObjectMover()
+    if not objectMoverEnabled then return end
+    
+    objectMoverEnabled = false
+    
+    for _, connection in ipairs(connections) do
+        if connection and typeof(connection) == "RBXScriptConnection" then
+            connection:Disconnect()
+        end
+    end
+    connections = {}
+    
+    if currentHighlight then
+        currentHighlight:Destroy()
+        currentHighlight = nil
+    end
+    
+    restoreOriginalLocations()
+    
+    currentModel = nil
+    currentTargetPart = nil
+end
+
+-- Функция переключения системы
+local function toggleObjectMover()
+    if objectMoverEnabled then
+        stopObjectMover()
+    else
+        startObjectMover()
+    end
+end
+
+-- ESP, KENT ESP
+
+
+
+local RunService = game:GetService("RunService")
+local CoreGui = game:GetService("CoreGui")
+local HttpService = game:GetService("HttpService")
+
+local player = Players.LocalPlayer
+local camera = workspace.CurrentCamera
+
+-- Настройки
+local Distance = false
+
+local playerEspEnabled = false
+local pwareEnabled = false
+local playerEspCache = {}
+
+--[[local KENT_URL = "https://pizdecware.pw/kent/usernames"
+local ENCRYPTION_KEY = "Kx9mP2vL8qR5nW3jF7tY1eU6oI4sA0zC"
+local pwareUsernames = {}
+
+-- Base64 декодирование
+local function base64_decode(data)
+    local b = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+    data = string.gsub(data, '[^'..b..'=]', '')
+    return (data:gsub('.', function(x)
+        if (x == '=') then return '' end
+        local r,f='',(b:find(x)-1)
+        for i=6,1,-1 do r=r..(f%2^i-f%2^(i-1)>0 and '1' or '0') end
+        return r
+    end):gsub('%d%d%d?%d?%d?%d?%d?%d?', function(x)
+        if (#x ~= 8) then return '' end
+        local c=0
+        for i=1,8 do c=c+(x:sub(i,i)=='1' and 2^(8-i) or 0) end
+        return string.char(c)
+    end))
+end
+
+-- XOR дешифрование
+local function xor_decrypt(encrypted_data, key)
+    local decoded = base64_decode(encrypted_data)
+    local result = ""
+    
+    for i = 1, #decoded do
+        local key_index = ((i - 1) % #key) + 1
+        local key_byte = key:byte(key_index)
+        local data_byte = decoded:byte(i)
+        local decrypt_byte = bit32.bxor(data_byte, key_byte)
+        result = result .. string.char(decrypt_byte)
+    end
+    
+    return result
+end
+
+-- Получение списка юзернеймов
+local function getActiveUsernames()
+    local success, encrypted_data = pcall(function()
+        return game:HttpGet(KENT_URL)
+    end)
+    
+    if not success then
+        return {}
+    end
+    
+    local decrypted = xor_decrypt(encrypted_data, ENCRYPTION_KEY)
+    local usernames = HttpService:JSONDecode(decrypted)
+    
+    return usernames
+end
+
+-- Функция для обновления PWARE списка
+local function updatePWareUsernames()
+    while pwareEnabled do
+        pwareUsernames = getActiveUsernames()
+        refreshPlayerESP()
+        wait(5)
+    end
+end
+
+local function isPWarePlayer(targetPlayer)
+    if not targetPlayer then return false end
+    for _, username in ipairs(pwareUsernames) do
+        if targetPlayer.Name == username then
+            return true
+        end
+    end
+    return false
+end
+--]]
+local function createHighlight(adornee, color, fillTransparency, outlineColor)
+    if not adornee then return end
+    local highlight = Instance.new("Highlight")
+    highlight.FillColor = color
+    highlight.FillTransparency = fillTransparency
+    highlight.OutlineColor = outlineColor or color
+    highlight.OutlineTransparency = 0
+    highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+    highlight.Adornee = adornee
+    highlight.Enabled = true
+    return highlight
+end
+
+local function getPlayerPosition(character)
+    local hrp = character:FindFirstChild("HumanoidRootPart")
+    return hrp and hrp.Position or character:FindFirstChild("Head").Position
+end
+
+local function getPlayerHealth(character)
+    local humanoid = character:FindFirstChildOfClass("Humanoid")
+    return humanoid and math.floor(humanoid.Health) or 0
+end
+
+local function setupPlayerESP(targetPlayer)
+    if not targetPlayer or targetPlayer == player or not targetPlayer.Character then return end
+    if playerEspCache[targetPlayer] then return end
+
+    local character = targetPlayer.Character
+    local position = getPlayerPosition(character)
+    if not position then return end
+
+    local mainContainer = Instance.new("ScreenGui")
+    mainContainer.Name = "PlayerESP_Container_" .. targetPlayer.Name
+    mainContainer.Parent = CoreGui
+    
+    local teamColor = targetPlayer.Team and targetPlayer.Team.TeamColor.Color or Color3.new(1, 1, 1)
+    local isPWare = isPWarePlayer(targetPlayer)
+    
+    -- Для KENT игроков - зеленый, для остальных - цвет команды
+    local highlightColor = isPWare and Color3.fromRGB(0, 255, 0) or teamColor
+    
+    local playerHighlight = createHighlight(character, highlightColor, 0.7, highlightColor)
+    playerHighlight.Parent = mainContainer
+    
+    local head = character:FindFirstChild("Head") or character:FindFirstChildWhichIsA("BasePart")
+    if head then
+        local billboard = Instance.new("BillboardGui")
+        billboard.Adornee = head
+        billboard.Size = UDim2.new(0, 150, 0, 35)
+        billboard.AlwaysOnTop = true
+        billboard.StudsOffset = Vector3.new(0, 2.5, 0)
+        billboard.Parent = mainContainer
+
+        local label = Instance.new("TextLabel")
+        label.Size = UDim2.new(1,0,1,0)
+        label.BackgroundTransparency = 1
+        label.Font = Enum.Font.SourceSansSemibold
+        label.TextSize = 11
+        label.TextColor3 = highlightColor
+        label.TextStrokeTransparency = 0.5
+        label.Parent = billboard
+
+        playerEspCache[targetPlayer] = {
+            mainContainer = mainContainer, 
+            label = label, 
+            position = position, 
+            character = character,
+            highlight = playerHighlight,
+            isPWare = isPWare
+        }
+    end
+end
+
+local function cleanupPlayerESP(targetPlayer)
+    local data = playerEspCache[targetPlayer]
+    if not data then return end
+    if data.mainContainer then data.mainContainer:Destroy() end
+    playerEspCache[targetPlayer] = nil
+end
+
+function refreshPlayerESP()
+    for player in pairs(playerEspCache) do
+        cleanupPlayerESP(player)
+    end
+
+    if playerEspEnabled then
+        for _, p in ipairs(Players:GetPlayers()) do
+            setupPlayerESP(p)
+        end
+    end
+end
+
+local function updateLabels()
+    local cameraPos = camera.CFrame.Position
+    
+    for p, data in pairs(playerEspCache) do
+        if not p or not p.Character or not p.Character.Parent then
+            cleanupPlayerESP(p)
+        else
+            local newPos = getPlayerPosition(data.character)
+            if newPos then
+                local distanceMeters = (newPos - cameraPos).Magnitude * 0.36
+                local health = getPlayerHealth(data.character)
+                
+                if Distance then
+                    data.label.Text = string.format("%s | HP:%d | %dm", p.Name, health, distanceMeters)
+                else
+                    data.label.Text = string.format("%s | HP:%d", p.Name, health)
+                end
+            end
+        end
+    end
+end
+
+local function onPlayerAdded(p)
+    p.CharacterAdded:Connect(function()
+        cleanupPlayerESP(p)
+        if playerEspEnabled then 
+            task.wait(0.5)
+            setupPlayerESP(p) 
+        end
+    end)
+    if playerEspEnabled then
+        task.wait(1)
+        setupPlayerESP(p)
+    end
+end
+
+Players.PlayerAdded:Connect(onPlayerAdded)
+Players.PlayerRemoving:Connect(cleanupPlayerESP)
+
+for _, p in ipairs(Players:GetPlayers()) do 
+    onPlayerAdded(p) 
+end
+
+RunService.RenderStepped:Connect(updateLabels)
+
+
+--
+-- UI CREATION
+--
+local combatSection = ui:CreateTabSection("Combat")
+local aimTab = combatSection:CreateTab("Aim", "rbxassetid://139650104834071")
+local aimLeft = aimTab:CreateSection("AimBot", "left")
+local aimRight = aimTab:CreateSection("SilentAim", "Right")
+
+local modsTab = combatSection:CreateTab("Modifications", "rbxassetid://127904742940104")
+local modsLeft = modsTab:CreateSection("Weapon Modifications", "left")
+local modsRight = modsTab:CreateSection("Options", "right")
+local ItemModsRight = modsTab:CreateSection("Item Modifications", "right")
+
+local MiscSection = ui:CreateTabSection("Miscellaneous")
+local MiscTab = MiscSection:CreateTab("Auras", "rbxassetid://129855843582244")
+local MiscLeft = MiscTab:CreateSection("Healing Auras", "left")
+local MiscRight = MiscTab:CreateSection("Killing Auras", "right")
+
+
+local OthersTab = MiscSection:CreateTab("Others", "rbxassetid://136882854117051")
+local ZOVCOPTERLeft = OthersTab:CreateSection("Zov Copter", "left")
+local OthersRight = OthersTab:CreateSection("Others", "Right")
+
+local VisualsTab = MiscSection:CreateTab("Visuals", "rbxassetid://13321848320")
+local VisualsLeft = VisualsTab:CreateSection("Esp", "left")
+local VisualsRight = VisualsTab:CreateSection("Visuals", "right")
+
+
+-- Переменные для хранения элементов UI
+local playerExceptionsDropdown, medkitPlayerDropdown, wrenchPlayerDropdown, pickaxeExcludeDropdown
+
+-- AIMBOT UI ELEMENTS
+CreateToggle({
+    section = aimLeft,
+    name = "AimBot",
+    save = false,
+    id = "AimBotEnableToggle",
+    default = false,
+    callback = function(v) 
+        Aimbot.Enabled = v
+        if not v then
+            StopAiming()
+            StopAutoAcquire()
+            if FOVCircle then
+                FOVCircle.Visible = false
+            end
+        else
+            CreateFOVCircle()
+        end
+    end
+})
+
+CreateToggle({
+    section = aimLeft,
+    name = "Show Fov",
+    save = false,
+    id = "AimBotShowFovToggle",
+    default = false,
+    callback = function(v) 
+        Aimbot.ShowFOV = v
+        CreateFOVCircle()
+    end
+})
+
+CreateSlider({
+    section = aimLeft,
+    name = "Aimbot Fov",
+    save = true,
+    id = "AimBotFovValueSlider",
+    min = 0,
+    max = 500,
+    default = 60,
+    callback = function(v) 
+        Aimbot.FieldOfView = v
+        if FOVCircle then
+            FOVCircle.Radius = v
+        end
+    end
+})
+
+CreateSlider({
+    section = aimLeft,
+    name = "Smoothness",
+    save = true,
+    id = "AimBotSmoothnessValueSlider",
+    min = 0,
+    max = 5,
+    default = 0,
+    callback = function(v) 
+        Aimbot.Smoothness = v
+    end
+})
+
+playerExceptionsDropdown = CreateDropdown({
+    section = aimLeft,
+    name = "Player Exceptions",
+    save = true,
+    id = "AimBotPlayerExceptions",
+    options = GetPlayerList(),
+    default = {},
+    multi = true,
+    callback = function(selectedPlayers) 
+        Aimbot.PlayerExceptions = {}
+        for _, playerName in pairs(selectedPlayers) do
+            Aimbot.PlayerExceptions[playerName] = true
+        end
+    end
+})
+
+CreateDropdown({
+    section = aimLeft,
+    name = "Target Part",
+    save = true,
+    id = "AimBotTargetPart",
+    options = {"Head", "Torso"},
+    default = "Head",
+    callback = function(v) 
+        Aimbot.TargetPart = v
+    end
+})
+
+-- SILENT AIM UI ELEMENTS
+CreateToggle({
+    section = aimRight,
+    name = "Silent Aim",
+    save = true,
+    id = "SilentAimEbableToggle",
+    default = false,
+    callback = function(v) 
+        SilentAim.Enabled = v
+        if not v and TracerLine then
+            TracerLine.Visible = false
+        end
+        UpdateSilentAimVisuals()
+    end
+})
+
+CreateToggle({
+    section = aimRight,
+    name = "Show Fov",
+    save = true,
+    id = "SilentAimFovValueSlider",
+    default = false,
+    callback = function(v) 
+        SilentAim.FOV.Visible = v
+        if SilentAimFOVCircle then
+            SilentAimFOVCircle.Visible = v and SilentAim.Enabled
+        end
+        if CenterDot then
+            CenterDot.Visible = v and SilentAim.Enabled
+        end
+    end
+})
+
+CreateBind({
+    section = aimRight,
+    name = "Keybind",
+    save = true,
+    id = "SilentAimKeybindValue",
+    default = Enum.KeyCode.L,
+    callback = function(keyCode) 
+        SilentAim.ToggleKey = keyCode.Name
+    end
+})
+
+CreateSlider({
+    section = aimRight,
+    name = "Fov Size",
+    save = true,
+    id = "SilentAimFovSize",
+    min = 0,
+    max = 500,
+    default = 60,
+    callback = function(v) 
+        SilentAim.FOV.Radius = v
+        if SilentAimFOVCircle then
+            SilentAimFOVCircle.Radius = v
+        end
+    end
+})
+
+CreateDropdown({
+    section = aimRight,
+    name = "Target Part",
+    save = true,
+    id = "SilentAimTargetPartDropDown",
+    multi = false,
+    options = {"Head", "Torso"},
+    default = "Head",
+    callback = function(v) 
+        SilentAim.TargetPart = v
+    end
+})
+
+CreateToggle({
+    section = aimRight,
+    name = "Show Tracer",
+    save = true,
+    id = "SilentAimTracerToggle",
+    default = true,
+    callback = function(v) 
+        SilentAim.Tracer.Enabled = v
+        if not v and TracerLine then
+            TracerLine.Visible = false
+        end
+    end
+})
+
+
+
+CreateToggle({
+    section = aimRight,
+    name = "Health Check",
+    save = true,
+    id = "SilentAimHealthCheckToggle",
+    default = true,
+    callback = function(v) 
+        SilentAim.HealthCheck = v
+    end
+})
+
+CreateToggle({
+    section = aimRight,
+    name = "Passive Check",
+    save = true,
+    id = "SilentAimPassiveCheckToggle",
+    default = false,
+    callback = function(v) 
+        SilentAim.PassiveCheck = v
+    end
+})
+
+CreateToggle({
+    section = aimRight,
+    name = "Wall Check",
+    save = true,
+    id = "SilentAimWallCheckToggle",
+    default = false,
+    callback = function(v) 
+        SilentAim.WallCheck = v
+    end
+})
+
+CreateToggle({
+    section = aimRight,
+    name = "Kent",
+    save = true,
+    id = "SilentAimKentToggle",
+    default = false,
+    callback = function(v) 
+        SilentAim.Kent = v
+    end
+})
+
+CreateSlider({
+    section = aimRight,
+    name = "Prediction",
+    save = true,
+    id = "SilentAimPredictionSlider",
+    min = 0,
+    max = 10,
+    default = 0,
+    step = 0.01,
+    callback = function(v) 
+        SilentAim.Prediction = v
+    end
+})
+
+-- WEAPON MODIFICATIONS UI ELEMENTS
+for modName, config in pairs(MOD_CONFIG) do
+    CreateToggle({
+        section = modsLeft,
+        name = config.display_name,
+        save = true,
+        id = "mod_" .. modName,
+        default = false,
+        callback = function(state)
+            ModStates[modName] = state
+            if ModStates.AutoApply then
+                ApplyModifications()
+            end
+        end
+    })
+end
+
+-- Toggle для INF AMMO
+CreateToggle({
+    section = modsLeft,
+    name = "Infinite Ammo",
+    save = true,
+    id = "InfAmmoEnableToggle",
+    default = false,
+    callback = function(state)
+        isEnabled = state
+        if state then
+            cleanup()
+            -- Выполняем принудительную перезарядку при активации
+            if player.Character then
+                forceReload(player.Character)
+            end
+            coroutine.wrap(mainLoop)()
+        else
+            cleanup()
+        end
+    end
+})
+
+-- Обработка респавна
+player.CharacterAdded:Connect(function(character)
+    -- Ожидаем полной загрузки персонажа
+    task.wait(1)
+    
+    -- Перезапускаем Infinite Ammo
+    if isEnabled then
+        cleanup()
+        processWeapons(character)
+    end
+    
+    -- Перезапускаем модификации оружия
+    if ModStates.AutoApply then
+        ApplyModifications()
+    end
+    
+    -- Перезапускаем ауры
+    if AuraSystem.MedkitAura.Enabled then
+        StartMedkitAura()
+    end
+    if AuraSystem.WrenchAura.Enabled then
+        StartWrenchAura()
+    end
+    if AuraSystem.PickaxeAura.Enabled then
+        StartPickaxeAura()
+    end
+    
+    -- Перезапускаем Insta Heal и Insta Wrench
+    if healingActive then
+        startHealing()
+    end
+    if repairingActive then
+        startRepairing()
+    end
+end)
+
+player.CharacterRemoving:Connect(function()
+    -- Очищаем все при смерти
+    if isEnabled then
+        cleanup()
+    end
+    StopMedkitAura()
+    StopWrenchAura()
+    StopPickaxeAura()
+    stopHealing()
+    stopRepairing()
+end)
+
+-- Очистка при выходе из игры
+game:GetService("UserInputService").WindowFocusReleased:Connect(function()
+    if isEnabled then
+        cleanup()
+    end
+end)
+
+CreateToggle({
+    section = modsLeft,
+    name = "Auto Mode",
+    save = true,
+    id = "AutoModeEnableToggle",
+    default = false,
+    callback = function(state)
+        local function applyAutoSetting(tool, autoState)
+            if not tool or not tool:IsA("Tool") then return end
+            
+            local settingsModule = tool:FindFirstChild("Settings")
+            if settingsModule and settingsModule:IsA("ModuleScript") then
+                local success, settings = pcall(function()
+                    return require(settingsModule)
+                end)
+                
+                if success and type(settings) == "table" then
+                    settings.auto = autoState
+                end
+            end
+        end
+        
+        local function updateTools(character)
+            if not character then return end
+            
+            for _, tool in ipairs(character:GetChildren()) do
+                applyAutoSetting(tool, state)
+            end
+            
+            local connection
+            connection = character.ChildAdded:Connect(function(child)
+                applyAutoSetting(child, state)
+            end)
+            
+            character.Destroying:Connect(function()
+                if connection then
+                    connection:Disconnect()
+                end
+            end)
+        end
+        
+        if player and player.Character then
+            updateTools(player.Character)
+        end
+        
+        if player then
+            player.CharacterAdded:Connect(function(character)
+                updateTools(character)
+                
+                task.delay(1, function()
+                    if character and character:IsDescendantOf(game) then
+                        updateTools(character)
+                    end
+                end)
+            end)
+        end
+    end
+})
+
+CreateToggle({
+    section = modsRight,
+    name = "Auto Apply",
+    save = true,
+    id = "AutoApplyEnableToggle",
+    default = false,
+    callback = function(state)
+        ModStates.AutoApply = state
+        if state then
+            ApplyModifications()
+        end
+    end
+})
+
+
+
+CreateButton({
+    section = modsRight,
+    name = "Apply Once",
+    position = "left",
+    callback = ApplyModifications
+})
+
+-- AURA SYSTEM UI ELEMENTS
+-- Medkit Aura UI Elements
+CreateToggle({
+    section = MiscLeft,
+    name = "Medkit Aura",
+    save = false,
+    id = "MedkitAuraEnableToggle",
+    default = false,
+    callback = function(state)
+        AuraSystem.MedkitAura.Enabled = state
+        if state then
+            StartMedkitAura()
+        else
+            StopMedkitAura()
+        end
+    end
+})
+
+CreateSlider({
+    section = MiscLeft,
+    name = "Heal Rate (ms)",
+    save = true,
+    id = "MedkitAuraHealRateSlider",
+    min = 1,
+    max = 9000,
+    default = 1,
+    callback = function(value)
+        AuraSystem.MedkitAura.HealRate = value
+    end
+})
+
+medkitPlayerDropdown = CreateDropdown({
+    section = MiscLeft,
+    name = "Heal Specific Player",
+    options = GetPlayerList(),
+    save = true,
+    id = "MedkitHealPlayerDropdown",
+    default = {},
+    multi = true,
+    callback = function(selectedPlayers)
+        AuraSystem.MedkitAura.TargetPlayers = selectedPlayers
+    end
+})
+
+-- Wrench Aura UI Elements
+CreateToggle({
+    section = MiscLeft,
+    name = "Wrench Aura",
+    save = false,
+    id = "WrenchAuraEnableToggle",
+    default = false,
+    callback = function(state)
+        AuraSystem.WrenchAura.Enabled = state
+        if state then
+            StartWrenchAura()
+        else
+            StopWrenchAura()
+        end
+    end
+})
+
+CreateSlider({
+    section = MiscLeft,
+    name = "Wrench-Heal Rate (ms)",
+    save = true,
+    id = "WrenchAuraHealRateSlider",
+    min = 1,
+    max = 9000,
+    default = 1,
+    callback = function(value)
+        AuraSystem.WrenchAura.HealRate = value
+    end
+})
+
+wrenchPlayerDropdown = CreateDropdown({
+    section = MiscLeft,
+    name = "Wrench-Heal Specific Player",
+    options = GetPlayerList(),
+    save = true,
+    id = "WrenchHealPlayerDropdown",
+    default = {},
+    multi = true,
+    callback = function(selectedPlayers)
+        AuraSystem.WrenchAura.TargetPlayers = selectedPlayers
+    end
+})
+
+-- Pickaxe Aura UI Elements
+CreateToggle({
+    section = MiscRight,
+    name = "Pickaxe aura",
+    save = false,
+    id = "PickaxeAuraEnableToggle",
+    default = false,
+    callback = function(state)
+        AuraSystem.PickaxeAura.Enabled = state
+        if state then
+            StartPickaxeAura()
+        else
+            StopPickaxeAura()
+        end
+    end
+})
+
+CreateSlider({
+    section = MiscRight,
+    name = "Attack Rate (ms)",
+    save = true,
+    id = "PickaxeAuraAttackRateSlider",
+    min = 1,
+    max = 9000,
+    default = 1,
+    callback = function(value)
+        AuraSystem.PickaxeAura.AttackRate = value
+    end
+})
+
+pickaxeExcludeDropdown = CreateDropdown({
+    section = MiscRight,
+    name = "Exclude Player",
+    options = GetPlayerList(),
+    save = true,
+    id = "PickaxeAuraExclusionsMultiDropdown",
+    default = {},
+    multi = true,
+    callback = function(excludedPlayers)
+        AuraSystem.PickaxeAura.ExcludedPlayers = excludedPlayers
+    end
+})
+
+--
+-- INITIALIZATION AND BACKGROUND TASKS
+--
+local function UpdatePlayerLists()
+    local playerList = GetPlayerList()
+    
+    if playerExceptionsDropdown and typeof(playerExceptionsDropdown.UpdateOptions) == "function" then
+        playerExceptionsDropdown:UpdateOptions(playerList)
+    end
+    
+    if medkitPlayerDropdown and typeof(medkitPlayerDropdown.UpdateOptions) == "function" then
+        medkitPlayerDropdown:UpdateOptions(playerList)
+    end
+    
+    if wrenchPlayerDropdown and typeof(wrenchPlayerDropdown.UpdateOptions) == "function" then
+        wrenchPlayerDropdown:UpdateOptions(playerList)
+    end
+    
+    if pickaxeExcludeDropdown and typeof(pickaxeExcludeDropdown.UpdateOptions) == "function" then
+        pickaxeExcludeDropdown:UpdateOptions(playerList)
+    end
+end
+
+Players.PlayerAdded:Connect(function(addedPlayer)
+    wait(1)
+    UpdatePlayerLists()
+end)
+
+Players.PlayerRemoving:Connect(function(removedPlayer)
+    UpdatePlayerLists()
+end)
+
+-- Background tasks
+spawn(function()
+    while true do
+        if ModStates.AutoApply then
+            ApplyModifications()
+        end
+        wait(1)
+    end
+end)
+
+spawn(function()
+    while true do
+        wait(0.2)
+        if CurrentTarget then
+            local character = GetCharacter(CurrentTarget.Player)
+            if not character or not IsAlive(character) then
+                StopAiming()
+                if IsMouseHeld then
+                    StartAiming()
+                end
+            end
+        end
+    end
+end)
+
+spawn(function()
+    while task.wait(2.6) do
+        wallCheckCache = {}
+    end
+end)
+
+-- Rendering loops
+RunService.RenderStepped:Connect(function()
+    if FOVCircle then
+        FOVCircle.Position = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
+        FOVCircle.Radius = Aimbot.FieldOfView
+        FOVCircle.Visible = Aimbot.ShowFOV and Aimbot.Enabled
+    end
+end)
+
+RunService.Heartbeat:Connect(function()
+    UpdateSilentAimVisuals()
+    
+    if not SilentAim.Enabled and TracerLine then
+        TracerLine.Visible = false
+    end
+end)
+
+-- Очистка при отключении
+player.CharacterRemoving:Connect(cleanup)
+game:GetService("UserInputService").WindowFocusReleased:Connect(function()
+    if isEnabled then
+        cleanup()
+    end
+    if FOVCircle then
+        FOVCircle.Visible = false
+    end
+    if SilentAimFOVCircle then
+        SilentAimFOVCircle.Visible = false
+    end
+    if TracerLine then
+        TracerLine.Visible = false
+    end
+    StopMedkitAura()
+    StopWrenchAura()
+    StopPickaxeAura()
+end)
+
+game:GetService("UserInputService").WindowFocused:Connect(function()
+    if FOVCircle and Aimbot.ShowFOV and Aimbot.Enabled then
+        FOVCircle.Visible = true
+    end
+    if SilentAimFOVCircle and SilentAim.FOV.Visible and SilentAim.Enabled then
+        SilentAimFOVCircle.Visible = true
+    end
+    if AuraSystem.MedkitAura.Enabled then
+        StartMedkitAura()
+    end
+    if AuraSystem.WrenchAura.Enabled then
+        StartWrenchAura()
+    end
+    if AuraSystem.PickaxeAura.Enabled then
+        StartPickaxeAura()
+    end
+end)
+
+-- Initial setup
+wait(2)
+UpdatePlayerLists()
+InitSilentAimDrawings()
+-- Apply saved slider values after UI initialization
+task.wait(0.5)
+-- Update SilentAim FOV from saved slider value
+local HttpService = game:GetService("HttpService")
+local success, savedSettings = pcall(function()
+    return HttpService:JSONDecode(readfile("Town.lua"))
+end)
+if success and savedSettings and savedSettings.SilentAimFovSize then
+    SilentAim.FOV.Radius = savedSettings.SilentAimFovSize
+end
+if SilentAimFOVCircle then
+    SilentAimFOVCircle.Radius = SilentAim.FOV.Radius
+end
+UpdateSilentAimVisuals()
+
+for _, tool in ipairs(GetValidPlayerTools()) do
+    SetupToolStructure(tool)
+end
+
+-- Insta Medkit UI Elements
+CreateToggle({
+    section = ItemModsRight,
+    name = "Insta Heal",
+    save = true,
+    id = "InstaHealEnableToggle",
+    default = false,
+    callback = function(state)
+        healingActive = state
+        if state then
+            startHealing()
+        else
+            stopHealing()
+        end
+    end
+})
+
+-- Insta Wrench UI Elements
+CreateToggle({
+    section = ItemModsRight,
+    name = "Insta Wrench",
+    save = true,
+    id = "InstaWrenchEnableToggle",
+    default = false,
+    callback = function(state)
+        repairingActive = state
+        if state then
+            startRepairing()
+        else
+            stopRepairing()
+        end
+    end
+})
+
+-- Auto-restart on respawn уже обрабатывается в основном обработчике CharacterAdded выше
+
+-- Cleanup when disabled
+RunService.Heartbeat:Connect(function()
+    if not healingActive and autoHealCoroutine then
+        stopHealing()
+    end
+    if not repairingActive and autoRepairCoroutine then
+        stopRepairing()
+    end
+end)
+
+-- UI Elements
+CreateToggle({
+    section = ZOVCOPTERLeft,
+    name = "ZOV Copter",
+    save = false,
+    id = "ZovCopterEnableToggle",
+    default = false,
+    callback = function(state)
+        isTrackingEnabled = state
+        if state and targetPlayerName ~= "" then
+            startTracking()
+        else
+            stopTracking()
+        end
+    end
+})
+
+-- Dropdown с игроками вместо TextInput
+CreateDropdown({
+    section = ZOVCOPTERLeft,
+    name = "Select Player",
+    save = false,
+    id = "ZovCopterTargetDropdown",
+    options = getPlayerList(),
+    default = "",
+    callback = function(selectedPlayer)
+        targetPlayerName = selectedPlayer
+        if isTrackingEnabled and selectedPlayer ~= "" then
+            -- При изменении игрока перезапускаем трекинг
+            startTracking()
+        elseif isTrackingEnabled and selectedPlayer == "" then
+            -- Если выбрана пустая строка, останавливаем трекинг
+            stopTracking()
+        end
+    end
+})
+
+
+-- Автоматическое обновление списка игроков каждые 20 секунд
+task.spawn(function()
+    while true do
+        task.wait(20)
+        -- Здесь должен быть код для обновления dropdown с новым списком игроков
+        -- Зависит от возможностей UI библиотеки для обновления существующего dropdown
+        local currentPlayers = getPlayerList()
+    end
+end)
+
+-- Автоматическая очистка при выходе из игры
+game:GetService("UserInputService").WindowFocusReleased:Connect(function()
+    if isTrackingEnabled then
+        stopTracking()
+    end
+end)
+
+Players.PlayerRemoving:Connect(function(player)
+    if player == localPlayer then
+        stopTracking()
+    elseif player.Name == targetPlayerName then
+        isTrackingEnabled = false
+        stopTracking()
+        warn("Target player left the game. Tracking stopped.")
+    end
+end)
+
+-- Toggle для переключения WallBang системы
+CreateToggle({
+    section = OthersRight,
+    name = "WallBang",
+    save = false,
+    default = false,
+    callback = function(v)
+        if v then
+            startObjectMover()
+        else
+            stopObjectMover()
+        end
+    end
+})
+
+-- Очистка при выходе игрока
+game:GetService("Players").PlayerRemoving:Connect(function(leavingPlayer)
+    if leavingPlayer == game:GetService("Players").LocalPlayer then
+        stopObjectMover()
+    end
+end)
+
+-- Очистка при удалении скрипта
+if typeof(script) == "Instance" and script:IsA("LocalScript") then
+    script.Destroying:Connect(function()
+        stopObjectMover()
+    end)
+end
+
+CreateToggle({
+    section = VisualsLeft,
+    name = "Enable Player ESP",
+    save = true,
+    id = "EnablePlayerESP",
+    default = false,
+    callback = function(v)
+        playerEspEnabled = v
+        refreshPlayerESP()
+    end
+})
+
+CreateToggle({
+    section = VisualsLeft,
+    name = "PWare user esp",
+    save = true,
+    id = "PWareUserESP",
+    default = false,
+    callback = function(v)
+        pwareEnabled = v
+        if v then
+            spawn(updatePWareUsernames)
+        else
+            pwareUsernames = {}
+            refreshPlayerESP()
+        end
+    end
+})
+
+local thirdPersonEnabled = false
+local interactMainScript = nil
+
+CreateToggle({
+    section = OthersRight,
+    name = "Third Person",
+    save = false,
+    default = false,
+    callback = function(v)
+        thirdPersonEnabled = v
+        if v then
+            interactMainScript = game:GetService("Players").LocalPlayer.PlayerGui.CameraClient
+            if interactMainScript then
+                interactMainScript.Enabled = false
+            end
+        else
+            if interactMainScript then
+                interactMainScript.Enabled = true
+            end
+        end
+    end
+})
+
+local amongusEnabled = false
+local CameraEventNamecall
+local amongusConnections = {}
+
+CreateToggle({
+    section = OthersRight,
+    name = "Amongus",
+    save = false,
+    id = "AmongusToggle",
+    default = false,
+    callback = function(v)
+        amongusEnabled = v
+        if v then
+            local ReplicatedStorage = game:GetService("ReplicatedStorage")
+            local CameraEvent = ReplicatedStorage:WaitForChild("CameraEvent")
+            
+            local movementSpeed = 50000.0
+            local randomCFrame1 = CFrame.identity
+            local randomCFrame2 = CFrame.identity
+            local randomCFrame3 = CFrame.identity
+            local randomCFrame4 = CFrame.identity
+            local randomFloat1 = 0
+            local randomFloat2 = 0.01
+            local randomBool = false
+            
+            CameraEventNamecall = hookmetamethod(game, "__namecall", function(self, ...)
+                local method = getnamecallmethod()
+                local args = {...}
+            
+                if method == "FireServer" and self == CameraEvent and not checkcaller() then
+                    local chaosPos1 = Vector3.new(
+                        math.random(-50, 50) * movementSpeed,
+                        math.random(-50, 50) * movementSpeed,
+                        math.random(-50, 50) * movementSpeed
+                    )
+                    local chaosRot1 = Vector3.new(
+                        math.random(-1440, 1440),
+                        math.random(-1440, 1440),
+                        math.random(-1440, 1440)
+                    )
+                    randomCFrame1 = CFrame.new(chaosPos1) * CFrame.Angles(math.rad(chaosRot1.X), math.rad(chaosRot1.Y), math.rad(chaosRot1.Z))
+            
+                    local chaosPos2 = Vector3.new(
+                        math.random(-100, 100) * movementSpeed,
+                        math.random(-100, 100) * movementSpeed,
+                        math.random(-100, 100) * movementSpeed
+                    )
+                    local chaosRot2 = Vector3.new(
+                        math.random(-2880, 2880),
+                        math.random(-2880, 2880),
+                        math.random(-2880, 2880)
+                    )
+                    randomCFrame2 = CFrame.new(chaosPos2) * CFrame.Angles(math.rad(chaosRot2.X), math.rad(chaosRot2.Y), math.rad(chaosRot2.Z))
+            
+                    randomCFrame3 = CFrame.new(
+                        math.random(-200, 200) * movementSpeed,
+                        math.random(-200, 200) * movementSpeed,
+                        math.random(-200, 200) * movementSpeed
+                    ) * CFrame.Angles(
+                        math.rad(math.random(-3600, 3600)),
+                        math.rad(math.random(-3600, 3600)),
+                        math.rad(math.random(-3600, 3600))
+                    )
+            
+                    randomCFrame4 = CFrame.new(
+                        math.random(-500, 500) * movementSpeed,
+                        math.random(-500, 500) * movementSpeed,
+                        math.random(-500, 500) * movementSpeed
+                    ) * CFrame.Angles(
+                        math.rad(math.random(-7200, 7200)),
+                        math.rad(math.random(-7200, 7200)),
+                        math.rad(math.random(-7200, 7200))
+                    )
+            
+                    randomFloat1 = math.random(-100000, 100000) / 1000
+                    randomFloat2 = math.random(1, 100000) / 1000000
+                    randomBool = math.random(1, 2) == 1
+            
+                    return CameraEventNamecall(self,
+                        randomCFrame1,
+                        randomFloat1,
+                        randomFloat2,
+                        randomBool,
+                        randomCFrame2,
+                        randomCFrame3,
+                        randomCFrame4
+                    )
+                end
+            
+                return CameraEventNamecall(self, ...)
+            end)
+            
+            local heartbeatConnection = RunService.Heartbeat:Connect(function(deltaTime)
+                if not amongusEnabled then return end
+                local jitter = Vector3.new(
+                    math.random(-15, 15) * 3.0,
+                    math.random(-15, 15) * 3.0,
+                    math.random(-15, 15) * 3.0
+                )
+                randomCFrame1 = randomCFrame1 + jitter
+                randomCFrame2 = randomCFrame2 + jitter * 2
+                randomCFrame3 = randomCFrame3 + jitter * 5
+                randomCFrame4 = randomCFrame4 + jitter * 10
+            
+                randomCFrame1 = randomCFrame1 * CFrame.Angles(
+                    math.rad(math.random(-180, 180)),
+                    math.rad(math.random(-180, 180)),
+                    math.rad(math.random(-180, 180))
+                )
+                randomCFrame2 = randomCFrame2 * CFrame.Angles(
+                    math.rad(math.random(-360, 360)),
+                    math.rad(math.random(-360, 360)),
+                    math.rad(math.random(-360, 360))
+                )
+            end)
+            table.insert(amongusConnections, heartbeatConnection)
+            
+            spawn(function()
+                while amongusEnabled do
+                    task.wait(0.00000001)
+                    randomFloat1 = randomFloat1 + math.random(-500, 500)
+                    randomFloat2 = math.random() * 100
+                    randomBool = not randomBool
+            
+                    if math.random() < 0.1 then
+                        randomCFrame1 = CFrame.new(math.random(-1000, 1000), math.random(-1000, 1000), math.random(-1000, 1000))
+                        randomCFrame4 = CFrame.new(Vector3.new(0,0,0)) * CFrame.Angles(math.rad(math.random(0, 360*10)), 0, 0)
+                    end
+                end
+            end)
+        else
+            -- Отключаем все соединения
+            for _, connection in ipairs(amongusConnections) do
+                if connection and typeof(connection) == "RBXScriptConnection" then
+                    connection:Disconnect()
+                end
+            end
+            amongusConnections = {}
+        end
+    end
+})
+
+local skinToneEnabled = false
+local originalMaterials = {}
+local originalColors = {}
+
+local function applySkinTone(character)
+    if not character then return end
+    
+    for _, part in pairs(character:GetDescendants()) do
+        if part:IsA("BasePart") or part:IsA("MeshPart") or part:IsA("UnionOperation") then
+            originalMaterials[part] = part.Material
+            originalColors[part] = part.Color
+            part.Material = Enum.Material.ForceField
+            part.Color = Color3.fromRGB(171, 0, 255)
+        end
+    end
+    
+    -- Apply to backpack items
+    if player.Backpack then
+        for _, tool in pairs(player.Backpack:GetDescendants()) do
+            if tool:IsA("BasePart") or tool:IsA("MeshPart") or tool:IsA("UnionOperation") then
+                originalMaterials[tool] = tool.Material
+                originalColors[tool] = tool.Color
+                tool.Material = Enum.Material.ForceField
+                tool.Color = Color3.fromRGB(171, 0, 255)
+            end
+        end
+    end
+end
+
+local function removeSkinTone()
+    for part, material in pairs(originalMaterials) do
+        if part and part.Parent then
+            part.Material = material
+        end
+    end
+    for part, color in pairs(originalColors) do
+        if part and part.Parent then
+            part.Color = color
+        end
+    end
+    originalMaterials = {}
+    originalColors = {}
+end
+
+CreateToggle({
+    section = VisualsRight,
+    name = "Skin Tone",
+    save = true,
+    id = "SkinToneToggle",
+    default = false,
+    callback = function(v)
+        skinToneEnabled = v
+        if v then
+            if player.Character then
+                applySkinTone(player.Character)
+            end
+        else
+            removeSkinTone()
+        end
+    end
+})
+
+-- Handle respawn
+player.CharacterAdded:Connect(function(character)
+    if skinToneEnabled then
+        task.wait(1)
+        applySkinTone(character)
+    end
+end)
+
+player.CharacterRemoving:Connect(function()
+    removeSkinTone()
+end)
+
+local lightingEnabled = false
+local originalTintColor
+
+local lightingEnabled = false
+local originalTintColor
+local fullBrightEnabled = false
+local brightLoop
+
+CreateToggle({
+    section = VisualsRight,
+    name = "Lighting",
+    save = true,
+    id = "LightingToggle",
+    default = false,
+    callback = function(v)
+        lightingEnabled = v
+        local lighting = game:GetService("Lighting")
+        local colorCorrection = lighting:FindFirstChild("ColorCorrection")
+        
+        if not colorCorrection then
+            colorCorrection = Instance.new("ColorCorrectionEffect")
+            colorCorrection.Parent = lighting
+        end
+        
+        if v then
+            originalTintColor = colorCorrection.TintColor
+        else
+            if originalTintColor then
+                colorCorrection.TintColor = originalTintColor
+            end
+        end
+    end
+})
+
+CreateToggle({
+    section = VisualsRight,
+    name = "Full Bright",
+    save = true,
+    id = "FullBrightToggle",
+    default = false,
+    callback = function(v)
+        fullBrightEnabled = v
+        if brightLoop then
+            brightLoop:Disconnect()
+            brightLoop = nil
+        end
+        
+        if v then
+            local function brightFunc()
+                local Lighting = game:GetService("Lighting")
+                Lighting.Brightness = 2
+                Lighting.ClockTime = 14
+                Lighting.FogEnd = 100000
+                Lighting.GlobalShadows = false
+                Lighting.OutdoorAmbient = Color3.fromRGB(128, 128, 128)
+            end
+            brightLoop = RunService.RenderStepped:Connect(brightFunc)
+        end
+    end
+})
+
+-- Continuous check loop for Skin Tone and Lighting
+spawn(function()
+    while true do
+        task.wait(1)
+        if skinToneEnabled and player.Character then
+            applySkinTone(player.Character)
+        end
+        
+        if lightingEnabled then
+            local lighting = game:GetService("Lighting")
+            local colorCorrection = lighting:FindFirstChild("ColorCorrection")
+            if colorCorrection then
+                colorCorrection.TintColor = Color3.fromRGB(171, 0, 255)
+            end
+        end
+    end
+end)
