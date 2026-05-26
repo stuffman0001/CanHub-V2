@@ -1,0 +1,607 @@
+--// SERVICES
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local ContentProvider = game:GetService("ContentProvider")
+local CoreGui = game:GetService("CoreGui")
+local StarterGui = game:GetService("StarterGui")
+
+local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
+
+
+--// TEST MODE
+local TEST_MODE = true
+
+if not TEST_MODE then return end
+
+--// INTRO / LOADING SCREEN
+local function createIntro()
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "NarcisHUB_Intro"
+    screenGui.IgnoreGuiInset = true
+    screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    screenGui.Parent = CoreGui
+
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(1, 0, 1, 0)
+    frame.BackgroundColor3 = Color3.fromRGB(5, 5, 20)
+    frame.BorderSizePixel = 0
+    frame.Parent = screenGui
+
+    local gradient = Instance.new("Frame")
+    gradient.Size = UDim2.new(2, 0, 2, 0)
+    gradient.Position = UDim2.new(-0.5, 0, -0.5, 0)
+    gradient.BackgroundColor3 = Color3.fromRGB(10, 10, 40)
+    gradient.BorderSizePixel = 0
+    gradient.Parent = frame
+
+    local gradUI = Instance.new("UIGradient")
+    gradUI.Rotation = 45
+    gradUI.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(10, 10, 40)),
+        ColorSequenceKeypoint.new(0.3, Color3.fromRGB(20, 0, 50)),
+        ColorSequenceKeypoint.new(0.6, Color3.fromRGB(0, 30, 60)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(10, 10, 40))
+    })
+    gradUI.Parent = gradient
+
+    for i = 1, 40 do
+        local star = Instance.new("Frame")
+        star.Size = UDim2.new(0, 3, 0, 3)
+        star.Position = UDim2.new(math.random(), 0, math.random(), 0)
+        star.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+        star.BorderSizePixel = 0
+        star.BackgroundTransparency = math.random() * 0.5 + 0.3
+        star.Parent = frame
+
+        local corner = Instance.new("UICorner")
+        corner.CornerRadius = UDim.new(0.5, 0)
+        corner.Parent = star
+
+        local tw = TweenService:Create(star, TweenInfo.new(math.random() * 2 + 1, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), {
+            BackgroundTransparency = 1,
+            Size = UDim2.new(0, math.random(4, 8), 0, math.random(4, 8))
+        })
+        tw:Play()
+    end
+
+    local title = Instance.new("TextLabel")
+    title.Size = UDim2.new(0, 500, 0, 60)
+    title.Position = UDim2.new(0.5, -250, 0.5, -80)
+    title.BackgroundTransparency = 1
+    title.Text = "NARCIS HUB"
+    title.TextColor3 = Color3.fromRGB(255, 255, 255)
+    title.TextScaled = true
+    title.Font = Enum.Font.GothamBold
+    title.TextTransparency = 1
+    title.Parent = frame
+
+    local titleShadow = title:Clone()
+    titleShadow.Position = UDim2.new(0.5, -248, 0.5, -78)
+    titleShadow.TextColor3 = Color3.fromRGB(100, 0, 200)
+    titleShadow.TextTransparency = 0.5
+    titleShadow.Parent = frame
+
+    local glow = Instance.new("Frame")
+    glow.Size = UDim2.new(0, 350, 0, 80)
+    glow.Position = UDim2.new(0.5, -175, 0.5, -90)
+    glow.BackgroundColor3 = Color3.fromRGB(150, 0, 255)
+    glow.BorderSizePixel = 0
+    glow.BackgroundTransparency = 0.6
+    glow.Parent = frame
+
+    local glowCorner = Instance.new("UICorner")
+    glowCorner.CornerRadius = UDim.new(0, 20)
+    glowCorner.Parent = glow
+
+    local glowBlur = Instance.new("BlurEffect")
+    glowBlur.Size = 24
+    glowBlur.Parent = glow
+
+    local subtitle = Instance.new("TextLabel")
+    subtitle.Size = UDim2.new(0, 400, 0, 40)
+    subtitle.Position = UDim2.new(0.5, -200, 0.5, -20)
+    subtitle.BackgroundTransparency = 1
+    subtitle.Text = "Script made by Narcis HUB"
+    subtitle.TextColor3 = Color3.fromRGB(180, 140, 255)
+    subtitle.TextScaled = true
+    subtitle.Font = Enum.Font.Gotham
+    subtitle.TextTransparency = 1
+    subtitle.Parent = frame
+
+    local barBg = Instance.new("Frame")
+    barBg.Size = UDim2.new(0, 300, 0, 4)
+    barBg.Position = UDim2.new(0.5, -150, 0.5, 30)
+    barBg.BackgroundColor3 = Color3.fromRGB(40, 40, 60)
+    barBg.BorderSizePixel = 0
+    barBg.Parent = frame
+
+    local barCorner = Instance.new("UICorner")
+    barCorner.CornerRadius = UDim.new(0, 2)
+    barCorner.Parent = barBg
+
+    local bar = Instance.new("Frame")
+    bar.Size = UDim2.new(0, 0, 1, 0)
+    bar.BackgroundColor3 = Color3.fromRGB(150, 0, 255)
+    bar.BorderSizePixel = 0
+    bar.Parent = barBg
+
+    local barCorner2 = Instance.new("UICorner")
+    barCorner2.CornerRadius = UDim.new(0, 2)
+    barCorner2.Parent = bar
+
+    local shine = Instance.new("Frame")
+    shine.Size = UDim2.new(0, 60, 1, 0)
+    shine.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    shine.BorderSizePixel = 0
+    shine.BackgroundTransparency = 0.7
+    shine.Parent = bar
+
+    local shineCorner = Instance.new("UICorner")
+    shineCorner.CornerRadius = UDim.new(0, 2)
+    shineCorner.Parent = shine
+
+    local loadText = Instance.new("TextLabel")
+    loadText.Size = UDim2.new(0, 200, 0, 20)
+    loadText.Position = UDim2.new(0.5, -100, 0.5, 40)
+    loadText.BackgroundTransparency = 1
+    loadText.Text = "Loading..."
+    loadText.TextColor3 = Color3.fromRGB(120, 120, 160)
+    loadText.TextScaled = true
+    loadText.Font = Enum.Font.Gotham
+    loadText.Parent = frame
+
+    return {
+        screenGui = screenGui,
+        frame = frame,
+        title = title,
+        titleShadow = titleShadow,
+        subtitle = subtitle,
+        bar = bar,
+        barBg = barBg,
+        glow = glow,
+        shine = shine,
+        gradient = gradient,
+        loadText = loadText
+    }
+end
+
+--// ANIMATE INTRO
+local function animateIntro(intro)
+    local ti = TweenInfo.new(0.8, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+    TweenService:Create(intro.title, ti, {TextTransparency = 0}):Play()
+    TweenService:Create(intro.title, ti, {TextTransparency = 0.5}):Play()
+
+    local glowIn = TweenService:Create(intro.glow, TweenInfo.new(0.6, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), {
+        BackgroundTransparency = 0.3,
+        Size = UDim2.new(0, 400, 0, 100)
+    })
+    glowIn:Play()
+
+    local gradAngle = 45
+    spawn(function()
+        while intro.frame and intro.frame.Parent do
+            gradAngle = (gradAngle + 0.15) % 360
+            intro.gradient.UIGradient.Rotation = gradAngle
+            RunService.RenderStepped:Wait()
+        end
+    end)
+
+    spawn(function()
+        while intro.shine and intro.shine.Parent do
+            for i = 0, 1, 0.02 do
+                if not intro.shine or not intro.shine.Parent then break end
+                intro.shine.Position = UDim2.new(i, 0, 0, 0)
+                RunService.RenderStepped:Wait()
+            end
+            task.wait(0.5)
+        end
+    end)
+
+    task.wait(0.3)
+    TweenService:Create(intro.subtitle, TweenInfo.new(0.6, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), {TextTransparency = 0}):Play()
+
+    local loadWords = {"Loading...", "Loading...", "Almost there...", "Finalizing..."}
+    for i = 1, 60 do
+        if not intro.frame or not intro.frame.Parent then break end
+
+        local progress = i / 60
+        intro.bar.Size = UDim2.new(progress, 0, 1, 0)
+
+        if i % 15 == 0 then
+            intro.loadText.Text = loadWords[math.min(i / 15 + 1, #loadWords)]
+        end
+
+        local dots = string.rep(".", (i % 4))
+        intro.loadText.Text = intro.loadText.Text:gsub("%.+", "") .. dots
+
+        task.wait(0.03)
+    end
+
+    if intro.bar and intro.bar.Parent then
+        intro.bar.Size = UDim2.new(1, 0, 1, 0)
+        intro.loadText.Text = "Complete!"
+    end
+
+    task.wait(0.3)
+
+    if intro.frame and intro.frame.Parent then
+        TweenService:Create(intro.frame, TweenInfo.new(0.5), {BackgroundTransparency = 1}):Play()
+        task.wait(0.1)
+        TweenService:Create(intro.title, TweenInfo.new(0.4), {TextTransparency = 1}):Play()
+        TweenService:Create(intro.titleShadow, TweenInfo.new(0.4), {TextTransparency = 1}):Play()
+        TweenService:Create(intro.subtitle, TweenInfo.new(0.4), {TextTransparency = 1}):Play()
+        TweenService:Create(intro.glow, TweenInfo.new(0.4), {BackgroundTransparency = 1}):Play()
+        TweenService:Create(intro.loadText, TweenInfo.new(0.3), {TextTransparency = 1}):Play()
+        TweenService:Create(intro.barBg, TweenInfo.new(0.3), {BackgroundTransparency = 1}):Play()
+
+        task.wait(0.5)
+        intro.screenGui:Destroy()
+    end
+end
+
+--// RUN INTRO
+local intro = createIntro()
+animateIntro(intro)
+task.wait(0.2)
+
+--// RAYFIELD
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+--// CONFIGURE RAYFIELD THEME
+if Rayfield and Rayfield.Theme then
+    Rayfield.Theme.Primary = Color3.fromRGB(150, 0, 255)
+    Rayfield.Theme.Font = Enum.Font.GothamBold
+end
+
+local Window = Rayfield:CreateWindow({
+    Name = "FPS FLICK",
+    LoadingTitle = "FPS FLICK",
+    LoadingSubtitle = "Made By Narcis",
+    ConfigurationSaving = {
+        Enabled = false
+    }
+})
+
+local Main = Window:CreateTab("Main", 4483362458)
+local TP = Window:CreateTab("Teleport", 4483362458)
+
+-- FOV CIRCLE
+local fovEnabled = false
+local fovRadius = 120
+
+local fovCircle = Drawing.new("Circle")
+fovCircle.Thickness = 2
+fovCircle.Filled = false
+fovCircle.Color = Color3.fromRGB(150, 0, 255)
+fovCircle.Visible = false
+
+RunService.RenderStepped:Connect(function()
+    if fovEnabled then
+        fovCircle.Position = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
+        fovCircle.Radius = fovRadius
+        fovCircle.Visible = true
+    else
+        fovCircle.Visible = false
+    end
+end)
+
+Main:CreateToggle({
+    Name = "FOV Circle",
+    CurrentValue = false,
+    Callback = function(v)
+        fovEnabled = v
+    end
+})
+
+Main:CreateSlider({
+    Name = "FOV Size",
+    Range = {50, 300},
+    Increment = 10,
+    CurrentValue = 120,
+    Callback = function(v)
+        fovRadius = v
+    end
+})
+
+-- ENEMY ESP
+local espEnabled = false
+local espConnections = {}
+
+local function removeESP(player)
+    if player.Character and player.Character:FindFirstChild("ESP") then
+        player.Character.ESP:Destroy()
+    end
+end
+
+local function createESP(character)
+    if character:FindFirstChild("ESP") then
+        return
+    end
+
+    local h = Instance.new("Highlight")
+    h.Name = "ESP"
+    h.FillColor = Color3.fromRGB(150, 0, 255)
+    h.OutlineColor = Color3.fromRGB(255, 255, 255)
+    h.FillTransparency = 0.3
+    h.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+    h.Parent = character
+end
+
+local function setupESP(player)
+    if player == LocalPlayer then
+        return
+    end
+
+    if player.Character and espEnabled then
+        createESP(player.Character)
+    end
+
+    if espConnections[player] then
+        espConnections[player]:Disconnect()
+    end
+
+    espConnections[player] = player.CharacterAdded:Connect(function(character)
+        if espEnabled then
+            task.wait(0.2)
+            createESP(character)
+        end
+    end)
+end
+
+Players.PlayerAdded:Connect(function(player)
+    if espEnabled then
+        setupESP(player)
+    end
+end)
+
+Players.PlayerRemoving:Connect(function(player)
+    if espConnections[player] then
+        espConnections[player]:Disconnect()
+        espConnections[player] = nil
+    end
+end)
+
+local function toggleESP(state)
+    espEnabled = state
+
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer then
+            if state then
+                setupESP(player)
+
+                if player.Character then
+                    createESP(player.Character)
+                end
+            else
+                removeESP(player)
+            end
+        end
+    end
+end
+
+RunService.RenderStepped:Connect(function()
+    if espEnabled then
+        for _, player in ipairs(Players:GetPlayers()) do
+            if player ~= LocalPlayer and player.Character then
+                if not player.Character:FindFirstChild("ESP") then
+                    createESP(player.Character)
+                end
+            end
+        end
+    end
+end)
+
+Main:CreateToggle({
+    Name = "Enemy ESP",
+    CurrentValue = false,
+    Callback = function(v)
+        toggleESP(v)
+    end
+})
+
+-- PLAYER STATS
+local statsEnabled = false
+
+local function addStats(player)
+    if player == LocalPlayer then return end
+
+    local function setup(char)
+        local hum = char:WaitForChild("Humanoid")
+        local root = char:WaitForChild("HumanoidRootPart")
+
+        local gui = Instance.new("BillboardGui")
+        gui.Size = UDim2.new(0, 200, 0, 80)
+        gui.StudsOffset = Vector3.new(0, 3, 0)
+        gui.AlwaysOnTop = true
+        gui.Name = "Stats"
+        gui.Parent = char
+
+        local text = Instance.new("TextLabel")
+        text.Size = UDim2.new(1, 0, 1, 0)
+        text.BackgroundTransparency = 1
+        text.TextColor3 = Color3.fromRGB(255, 255, 255)
+        text.TextScaled = true
+        text.Parent = gui
+
+        RunService.RenderStepped:Connect(function()
+            if not statsEnabled then return end
+            if not char or not root then return end
+            text.Text = player.Name .. "\nHP: " .. math.floor(hum.Health) .. "\nSpeed: " .. math.floor(root.Velocity.Magnitude)
+        end)
+    end
+
+    if player.Character then
+        setup(player.Character)
+    end
+
+    player.CharacterAdded:Connect(setup)
+end
+
+Main:CreateToggle({
+    Name = "Player Stats",
+    CurrentValue = false,
+    Callback = function(v)
+        statsEnabled = v
+        for _, p in pairs(Players:GetPlayers()) do
+            addStats(p)
+        end
+    end
+})
+
+-- AIM ASSIST
+local aimAssist = false
+local holding = false
+local smoothness = 0.15
+
+UserInputService.InputBegan:Connect(function(input, gpe)
+    if gpe then return end
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        holding = true
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        holding = false
+    end
+end)
+
+local function getClosest()
+    local mouse = UserInputService:GetMouseLocation()
+    local closest = nil
+    local dist = math.huge
+
+    for _, p in pairs(Players:GetPlayers()) do
+        if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("Head") then
+            local pos, vis = Camera:WorldToViewportPoint(p.Character.Head.Position)
+            if vis then
+                local mag = (Vector2.new(pos.X, pos.Y) - mouse).Magnitude
+                if mag < dist and mag < fovRadius then
+                    dist = mag
+                    closest = p.Character.Head
+                end
+            end
+        end
+    end
+
+    return closest
+end
+
+RunService.RenderStepped:Connect(function()
+    if aimAssist and holding then
+        local target = getClosest()
+        if target then
+            local camPos = Camera.CFrame.Position
+            Camera.CFrame = Camera.CFrame:Lerp(CFrame.new(camPos, target.Position), smoothness)
+        end
+    end
+end)
+
+Main:CreateToggle({
+    Name = "Aim Assist",
+    CurrentValue = false,
+    Callback = function(v)
+        aimAssist = v
+    end
+})
+
+Main:CreateSlider({
+    Name = "Smoothness",
+    Range = {0.01, 1},
+    Increment = 0.01,
+    CurrentValue = 0.15,
+    Callback = function(v)
+        smoothness = v
+    end
+})
+
+-- HITBOX EXPANDER
+local hitboxEnabled = false
+local hitboxSize = 2
+local hitboxParts = {"HumanoidRootPart", "Head", "UpperTorso", "LowerTorso", "Torso"}
+local originalSizes = {}
+
+local function saveOriginalSize(part)
+    if not originalSizes[part] then
+        originalSizes[part] = part.Size
+    end
+end
+
+local function expandHitboxes(state)
+    for _, p in pairs(Players:GetPlayers()) do
+        if p ~= LocalPlayer and p.Character then
+            for _, partName in pairs(hitboxParts) do
+                local part = p.Character:FindFirstChild(partName)
+                if part and part:IsA("BasePart") then
+                    saveOriginalSize(part)
+                    if state then
+                        part.Size = originalSizes[part] * hitboxSize
+                        part.CanCollide = false
+                    else
+                        part.Size = originalSizes[part]
+                    end
+                end
+            end
+        end
+    end
+end
+
+Main:CreateToggle({
+    Name = "Hitbox Expander",
+    CurrentValue = false,
+    Callback = function(v)
+        hitboxEnabled = v
+        expandHitboxes(v)
+    end
+})
+
+Main:CreateSlider({
+    Name = "Hitbox Size",
+    Range = {1, 5},
+    Increment = 0.5,
+    CurrentValue = 2,
+    Callback = function(v)
+        hitboxSize = v
+        if hitboxEnabled then
+            expandHitboxes(true)
+        end
+    end
+})
+
+-- KILL ALL
+Main:CreateButton({
+    Name = "Kill All",
+    Callback = function()
+        for _, p in pairs(Players:GetPlayers()) do
+            if p ~= LocalPlayer and p.Character then
+                local hum = p.Character:FindFirstChild("Humanoid")
+                if hum then
+                    hum.Health = 0
+                end
+            end
+        end
+    end
+})
+
+-- TELEPORT MENU
+local function addTP(player)
+    if player == LocalPlayer then return end
+
+    TP:CreateButton({
+        Name = "TP to " .. player.Name,
+        Callback = function()
+            if player.Character and LocalPlayer.Character then
+                LocalPlayer.Character:MoveTo(player.Character.HumanoidRootPart.Position + Vector3.new(2, 0, 0))
+            end
+        end
+    })
+end
+
+for _, p in pairs(Players:GetPlayers()) do
+    addTP(p)
+end
+
+Players.PlayerAdded:Connect(addTP)
