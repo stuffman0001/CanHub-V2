@@ -15,11 +15,15 @@ local SETTINGS = loadSettings() or {
 	general = {
 		Print = true,
 		SendNotifications = true,
-		AutoInject = true,
+		AutoInject = false,
 	},
 	safety = {
 		Bypassers = true,
 		UncTests = true,
+	},
+
+	developer = {
+		bypass_discord = nil
 	}
 }	
 if SETTINGS.safety.Bypassers == true then
