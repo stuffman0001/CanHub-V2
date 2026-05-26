@@ -23,7 +23,7 @@ local SETTINGS = loadSettings() or {
 	},
 
 	developer = {
-		bypass_discord = nil
+		password = nil
 	}
 }	
 if SETTINGS.safety.Bypassers == true then
