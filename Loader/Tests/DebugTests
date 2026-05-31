@@ -34,6 +34,6 @@ local function startdebug()
 loadstring(game:HttpGet("https://raw.githubusercontent.com/lowesky123/debug/refs/heads/main/start.lua"))()
 end
             
-startdebug()
+task.spawn(startdebug)
 
 
