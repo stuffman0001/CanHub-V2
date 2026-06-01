@@ -1,4 +1,4 @@
-
+pcall(function()
 local passes, fails, undefined = 0, 0, 0
 local running = 0
 
@@ -860,3 +860,4 @@ local outOf = passes .. " out of " .. (passes + fails)
 	Text = "✅ Tested with a " .. tostring(rate) .. "% success rate (" .. tostring(outOf) .. ")";
 	Duration = 5;
 	})
+end)
