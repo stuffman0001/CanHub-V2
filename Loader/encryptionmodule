@@ -356,6 +356,8 @@ local module = {
 	EncryptData = EncryptData,
 	DecryptData = DecryptData,
 	generateKey = generateKey,
+    base64decrypt = _b64Dec,
+    base64encrypt = _b64Enc
 }
 
 return module
