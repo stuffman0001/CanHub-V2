@@ -1,0 +1,361 @@
+local HttpService = game:GetService("HttpService")
+
+local _B64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+local _SALT_LEN = 8
+local _ROUNDS = 4
+local _HMAC_LEN = 4
+local _BLOCK = 256
+
+
+local function _band(a, b)
+	local r, s = 0, 1
+	while a > 0 and b > 0 do
+		local ra, rb = a % 2, b % 2
+		if ra == 1 and rb == 1 then r = r + s end
+		a, b, s = math.floor(a / 2), math.floor(b / 2), s * 2
+	end
+	return r
+end
+
+local function _bxor(a, b)
+	local r, s = 0, 1
+	while a > 0 or b > 0 do
+		local ra, rb = a % 2, b % 2
+		if ra ~= rb then r = r + s end
+		a, b, s = math.floor(a / 2), math.floor(b / 2), s * 2
+	end
+	return r
+end
+
+local function _bor(a, b)
+	local r, s = 0, 1
+	while a > 0 or b > 0 do
+		local ra, rb = a % 2, b % 2
+		if ra == 1 or rb == 1 then r = r + s end
+		a, b, s = math.floor(a / 2), math.floor(b / 2), s * 2
+	end
+	return r
+end
+
+local function _lshift(a, n)
+	return math.floor(a * (2 ^ n)) % 256
+end
+
+local function _rshift8(a, n)
+	return math.floor(a / (2 ^ n)) % 256
+end
+
+
+local function _b64Enc(data)
+	return ((data:gsub(".", function(c)
+		local r, b = "", c:byte()
+		for i = 8, 1, -1 do
+			r = r .. (_band(b, 2 ^ (i - 1)) > 0 and "1" or "0")
+		end
+		return r
+	end) .. "0000"):gsub("%d%d%d?%d?%d?%d?", function(x)
+		if #x < 6 then return "" end
+		local c = 0
+		for i = 1, 6 do c = c + (x:sub(i, i) == "1" and 2 ^ (6 - i) or 0) end
+		return _B64:sub(c + 1, c + 1)
+	end) .. ({"", "==", "="})[#data % 3 + 1])
+end
+
+local function _b64Dec(data)
+	data = data:gsub("[^" .. _B64 .. "=]", "")
+	return (data:gsub(".", function(c)
+		if c == "=" then return "" end
+		local r, f = "", (_B64:find(c) - 1)
+		for i = 6, 1, -1 do
+			r = r .. (math.floor(f / 2 ^ (i - 1)) % 2 == 1 and "1" or "0")
+		end
+		return r
+	end):gsub("%d%d%d?%d?%d?%d?%d?%d?", function(x)
+		if #x ~= 8 then return "" end
+		local c = 0
+		for i = 1, 8 do c = c + (x:sub(i, i) == "1" and 2 ^ (8 - i) or 0) end
+		return string.char(c)
+	end))
+end
+
+
+local function _deriveKey(seed, length)
+	local out = {}
+	local acc = 0x1337BEEF
+	local seedBytes = {seed:byte(1, #seed)}
+	local si = 1
+	for i = 1, length do
+
+		acc = _bxor(acc, seedBytes[si] or 0xAA)
+		acc = _bxor(acc * 6364136223846793005 % (2^32), i * 0x9e3779b9 % (2^32))
+		acc = _bor(_lshift(_band(acc, 0xFF), 3), _rshift8(_band(acc, 0xFF), 5))
+			+ math.floor(acc / 256) % (2^24)
+		acc = acc % (2^32)
+		out[i] = _band(acc, 0xFF)
+		si = (si % #seedBytes) + 1
+	end
+	return out
+end
+
+
+local function _rc4(data, keyBytes)
+
+	local S = {}
+	for i = 0, 255 do S[i] = i end
+	local j = 0
+	local klen = #keyBytes
+	for i = 0, 255 do
+		j = (j + S[i] + keyBytes[(i % klen) + 1]) % 256
+		S[i], S[j] = S[j], S[i]
+	end
+
+	local i2, j2 = 0, 0
+	local out = {}
+	for ci = 1, #data do
+		i2 = (i2 + 1) % 256
+		j2 = (j2 + S[i2]) % 256
+		S[i2], S[j2] = S[j2], S[i2]
+		local ks = S[(S[i2] + S[j2]) % 256]
+		out[ci] = string.char(_bxor(data:byte(ci), ks))
+	end
+	return table.concat(out)
+end
+
+
+local function _multiRoundEncrypt(data, masterKeyBytes)
+	local current = data
+	for r = 1, _ROUNDS do
+		local roundSeed = table.concat(masterKeyBytes, ",") .. "|" .. r
+		local roundKey = _deriveKey(roundSeed, math.max(16, #masterKeyBytes))
+		current = _rc4(current, roundKey)
+	end
+	return current
+end
+
+local function _multiRoundDecrypt(data, masterKeyBytes)
+	local current = data
+	for r = _ROUNDS, 1, -1 do
+		local roundSeed = table.concat(masterKeyBytes, ",") .. "|" .. r
+		local roundKey = _deriveKey(roundSeed, math.max(16, #masterKeyBytes))
+		current = _rc4(current, roundKey)
+	end
+	return current
+end
+
+
+local function _buildPermutation(size, seed)
+	local perm = {}
+	for i = 1, size do perm[i] = i end
+
+	local state = seed
+	for i = size, 2, -1 do
+		state = (state * 1664525 + 1013904223) % (2^32)
+		local j = (state % i) + 1
+		perm[i], perm[j] = perm[j], perm[i]
+	end
+	return perm
+end
+
+local function _transpose(data, keyBytes)
+	local n = #data
+	if n < 2 then return data end
+	local seed = 0
+	for _, b in ipairs(keyBytes) do seed = _bxor(seed * 31 + b, 0xDEAD) % (2^32) end
+	local perm = _buildPermutation(n, seed)
+	local out = {}
+	local bytes = {data:byte(1, n)}
+	for i = 1, n do out[perm[i]] = bytes[i] end
+	return string.char(table.unpack(out))
+end
+
+local function _untranspose(data, keyBytes)
+	local n = #data
+	if n < 2 then return data end
+	local seed = 0
+	for _, b in ipairs(keyBytes) do seed = _bxor(seed * 31 + b, 0xDEAD) % (2^32) end
+	local perm = _buildPermutation(n, seed)
+	local out = {}
+	local bytes = {data:byte(1, n)}
+	for i = 1, n do out[i] = bytes[perm[i]] end
+	return string.char(table.unpack(out))
+end
+
+
+local function _keyedHash(data, keyBytes)
+	local h = 0x811C9DC5  
+	local klen = #keyBytes
+	for i = 1, #data do
+		local b = _bxor(data:byte(i), keyBytes[(i % klen) + 1])
+		h = _bxor(h, b)
+		h = (h * 0x01000193) % (2^32)
+	end
+
+	h = _bxor(h, math.floor(h / 0x10000))
+	h = (h * 0x45d9f3b) % (2^32)
+	h = _bxor(h, math.floor(h / 0x10000))
+
+	local out = {}
+	for i = 1, _HMAC_LEN do
+		out[i] = string.char(h % 256)
+		h = math.floor(h / 256)
+	end
+	return table.concat(out)
+end
+
+
+local function _makeSalt()
+	local s = {}
+	for i = 1, _SALT_LEN do
+		s[i] = string.char(math.random(0, 255))
+	end
+	return table.concat(s)
+end
+
+
+local function _fullEncrypt(plaintext, keyBytes)
+
+	local salt = _makeSalt()
+	local salted = salt .. plaintext
+
+
+	local ciphered = _multiRoundEncrypt(salted, keyBytes)
+
+
+	local transposed = _transpose(ciphered, keyBytes)
+
+
+	local tag = _keyedHash(transposed, keyBytes)
+
+	return _b64Enc(transposed .. tag)
+end
+
+local function _fullDecrypt(encoded, keyBytes)
+
+	local raw = _b64Dec(encoded)
+	if #raw < (_SALT_LEN + _HMAC_LEN + 1) then
+		return nil, "ciphertext too short"
+	end
+
+	local payload  = raw:sub(1, #raw - _HMAC_LEN)
+	local tag      = raw:sub(#raw - _HMAC_LEN + 1)
+
+	local expected = _keyedHash(payload, keyBytes)
+	if expected ~= tag then
+		return nil, "integrity check failed"
+	end
+
+	local untransposed = _untranspose(payload, keyBytes)
+
+	local deciphered = _multiRoundDecrypt(untransposed, keyBytes)
+
+	local plaintext = deciphered:sub(_SALT_LEN + 1)
+	return plaintext, nil
+end
+
+
+local function generateKey(length)
+	length = math.min(math.max(length or 16, 8), 32)
+	local raw = {}
+	for i = 1, length do
+		raw[i] = string.char(math.random(0, 255))
+	end
+	return _b64Enc(table.concat(raw))
+end
+
+
+local function _serializeTable(t)
+	local ok, result = pcall(function() return HttpService:JSONEncode(t) end)
+	if ok then return result end
+	warn("Failed to serialize table: " .. tostring(result))
+	return nil
+end
+
+local function _deserializeTable(s)
+	local ok, result = pcall(function() return HttpService:JSONDecode(s) end)
+	if ok then return result end
+	return s
+end
+
+
+local function EncryptData(data, key)
+	local base64Key
+	if key == nil then
+		base64Key = generateKey(16)
+	else
+		base64Key = key
+	end
+
+	local originalData = data
+
+	if type(data) == "table" then
+		data = _serializeTable(data)
+		if not data then
+			return {
+				Status = "ERROR",
+				Message = "Data encryption FAILED: could not serialize table.",
+				Key = nil,
+				Original = originalData,
+				EncryptedResult = nil,
+			}
+		end
+	end
+
+	local rawKey    = _b64Dec(base64Key)
+	local keyBytes  = { rawKey:byte(1, #rawKey) }
+
+	local encryptedText = _fullEncrypt(data, keyBytes)
+
+	if encryptedText then
+		return {
+			Status = "SUCCESS",
+			Message = "Data was encrypted successfully",
+			Key = base64Key,
+			Original = originalData,
+			EncryptedResult = encryptedText,
+		}
+	else
+		return {
+			Status = "ERROR",
+			Message = "Data encryption FAILED.",
+			Key = nil,
+			Original = originalData,
+			EncryptedResult = nil,
+		}
+	end
+end
+
+local function DecryptData(data, base64Key)
+	local rawKey   = _b64Dec(base64Key)
+	local keyBytes = { rawKey:byte(1, #rawKey) }
+
+	local decryptedText, err = _fullDecrypt(data, keyBytes)
+
+	if decryptedText then
+		local result = _deserializeTable(decryptedText) or decryptedText
+		return {
+			Status = "SUCCESS",
+			Message = "Data Decryption Success.",
+			Key = base64Key,
+			OriginalEncrypted = data,
+			DecryptedResult = result,
+		}
+	else
+		warn("Decryption error: " .. tostring(err))
+		return {
+			Status = "ERROR",
+			Message = "Data decryption FAILED: " .. tostring(err),
+			Key = nil,
+			OriginalEncrypted = data,
+			DecryptedResult = nil,
+		}
+	end
+end
+
+
+local module = {
+	EncryptData = EncryptData,
+	DecryptData = DecryptData,
+	generateKey = generateKey,
+}
+
+return module
