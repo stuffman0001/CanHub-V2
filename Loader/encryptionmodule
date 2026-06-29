@@ -330,27 +330,24 @@ local function DecryptData(data, base64Key)
 
 	local decryptedText, err = _fullDecrypt(data, keyBytes)
 
-	if decryptedText then
-		local result = _deserializeTable(decryptedText) or decryptedText
-        if result == decryptedText then
-        		return {
-			Status = "SUCCESS",
-			Message = "Data Decryption Success.",
-			Key = base64Key,
-			OriginalEncrypted = data,
-			DecryptedResult = result,
-            Error = true,
-		}  
+	if result == decryptedText then
+    return {
+        Status = "SUCCESS",
+        Message = "Data Decryption Success.",
+        Key = base64Key,
+        OriginalEncrypted = data,
+        DecryptedResult = result,
+        Error = true,
+    }
 else
-      		return {
-			Status = "SUCCESS",
-			Message = "Data Decryption Success.",
-			Key = base64Key,
-			OriginalEncrypted = data,
-			DecryptedResult = result,
-            
-		}
-        end
+    return {
+        Status = "SUCCESS",
+        Message = "Data Decryption Success.",
+        Key = base64Key,
+        OriginalEncrypted = data,
+        DecryptedResult = result,
+    }
+end
 	else
 		warn("Decryption error: " .. tostring(err))
 		return {
