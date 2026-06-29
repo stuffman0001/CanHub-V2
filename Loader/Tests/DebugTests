@@ -23,7 +23,8 @@ local SETTINGS = loadSettings() or {
 	},
 
 	developer = {
-		password = nil
+		password = nil,
+		verificationkey = nil,
 	}
 }	
 if SETTINGS.safety.Bypassers == true then
