@@ -332,6 +332,7 @@ local function DecryptData(data, base64Key)
 
 	if decryptedText then
 		local result = _deserializeTable(decryptedText) or decryptedText
+        print("RAW DECRYPT:", decryptedText)
 		return {
 			Status = "SUCCESS",
 			Message = "Data Decryption Success.",
