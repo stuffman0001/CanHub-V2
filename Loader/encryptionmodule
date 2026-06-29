@@ -330,34 +330,37 @@ local function DecryptData(data, base64Key)
 
 	local decryptedText, err = _fullDecrypt(data, keyBytes)
 
-	if result == decryptedText then
-    return {
-        Status = "SUCCESS",
-        Message = "Data Decryption Success.",
-        Key = base64Key,
-        OriginalEncrypted = data,
-        DecryptedResult = result,
-        Error = true,
-    }
-else
-    return {
-        Status = "SUCCESS",
-        Message = "Data Decryption Success.",
-        Key = base64Key,
-        OriginalEncrypted = data,
-        DecryptedResult = result,
-    }
+	if decryptedText then
+		local result = _deserializeTable(decryptedText) or decryptedText
+		if result == decryptedText then
+			return {
+				Status = "SUCCESS",
+				Message = "Data Decryption Success.",
+				Key = base64Key,
+				OriginalEncrypted = data,
+				DecryptedResult = result,
+				Error = true,
+			}  
+		else
+			return {
+				Status = "SUCCESS",
+				Message = "Data Decryption Success.",
+				Key = base64Key,
+				OriginalEncrypted = data,
+				DecryptedResult = result,
+
+			}
+		end
+		else
+	warn("Decryption error: " .. tostring(err))
+	return {
+		Status = "ERROR",
+		Message = "Data decryption FAILED: " .. tostring(err),
+		Key = nil,
+		OriginalEncrypted = data,
+		DecryptedResult = nil,
+	}
 end
-	else
-		warn("Decryption error: " .. tostring(err))
-		return {
-			Status = "ERROR",
-			Message = "Data decryption FAILED: " .. tostring(err),
-			Key = nil,
-			OriginalEncrypted = data,
-			DecryptedResult = nil,
-		}
-	end
 end
 
 
@@ -365,8 +368,8 @@ local module = {
 	EncryptData = EncryptData,
 	DecryptData = DecryptData,
 	generateKey = generateKey,
-    base64decrypt = _b64Dec,
-    base64encrypt = _b64Enc
+	base64decrypt = _b64Dec,
+	base64encrypt = _b64Enc
 }
 
 return module
