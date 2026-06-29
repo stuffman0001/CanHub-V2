@@ -350,7 +350,7 @@ else
 			DecryptedResult = result,
             
 		}
-        end)
+        end
 	else
 		warn("Decryption error: " .. tostring(err))
 		return {
